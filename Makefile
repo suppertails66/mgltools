@@ -24,20 +24,17 @@ tools = sjis_srch mgl_strtab_extr mgl_str_insr mgl_str_fmtconv mgl_img_decmp mgl
 
 all: blackt $(OBJ) $(tools)
 	
-mgl_transtxt: blackt $(OBJ)
-	$(CXX) -c $(OBJ) src/mgl_transtxt.cpp -o mgl_transtxt.o $(CXXFLAGS)
-	
 sjis_srch: blackt $(OBJ)
 	$(CXX) $(OBJ) src/sjis_srch.cpp -o sjis_srch $(CXXFLAGS)
 	
-mgl_strtab_extr: blackt $(OBJ) mgl_transtxt
-	$(CXX) $(OBJ) mgl_transtxt.o src/mgl_strtab_extr.cpp -o mgl_strtab_extr $(CXXFLAGS)
+mgl_strtab_extr: blackt $(OBJ)
+	$(CXX) $(OBJ) src/mgl_transtxt.cpp src/mgl_strtab_extr.cpp -o mgl_strtab_extr $(CXXFLAGS)
 	
-mgl_str_insr: blackt $(OBJ) mgl_transtxt
-	$(CXX) $(OBJ) mgl_transtxt.o src/mgl_str_insr.cpp -o mgl_str_insr $(CXXFLAGS)
+mgl_str_insr: blackt $(OBJ)
+	$(CXX) $(OBJ) src/mgl_transtxt.cpp src/mgl_str_insr.cpp -o mgl_str_insr $(CXXFLAGS)
 	
-mgl_str_fmtconv: blackt $(OBJ) mgl_transtxt
-	$(CXX) $(OBJ) mgl_transtxt.o src/mgl_str_fmtconv.cpp -o mgl_str_fmtconv $(CXXFLAGS)
+mgl_str_fmtconv: blackt $(OBJ)
+	$(CXX) $(OBJ) src/mgl_transtxt.cpp src/mgl_str_fmtconv.cpp -o mgl_str_fmtconv $(CXXFLAGS)
 	
 mgl_img_decmp: blackt $(OBJ)
 	$(CXX) $(OBJ) src/mgl_img_decmp.cpp -o mgl_img_decmp $(CXXFLAGS)
@@ -79,7 +76,6 @@ blackt/libblackt.a:
 # Clean wdtools
 cleanme:
 	rm -f $(tools)
-	rm -f mgl_transtxt.o
 	rm -rf $(ODIR)
 	rm -f grp
 
