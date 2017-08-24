@@ -228,6 +228,9 @@ void updateChunk(char* buffer, int realChunkSize,
   for (int i = startIndex; i < endIndex; i++) {
     TransFileEntry& entry = transFileEntries[i];
     
+    // offset of zero == something went wrong with reading
+    if (entry.offset == 0) continue;
+    
     // Offset of the offset to update for this entry
     int textOffsetOffset = dialogueOffsetTableOffset + ((i - startIndex) * 4);
     
@@ -352,7 +355,14 @@ int main(int argc, char* argv[]) {
     TransFileEntry entry;
     pos = entry.read(csv16, pos);
     transEntries.push_back(entry);
+    
+//    if (pos >= csv16.size() - 2) break;
   }
+  
+//  cout << transEntries[transEntries.size() - 1].offset << endl;
+  
+  // last entry is invalid because of stupidity
+//  transEntries.pop_back();
   
   // Read the input FLD
   ifs.open(infile, ios_base::binary);
@@ -379,6 +389,7 @@ int main(int argc, char* argv[]) {
   while (startIndex < transEntries.size()) {
     // Find the indices of the start and end of the dialogue for each chunk
     while (transEntries[endIndex++].chunk == transEntries[startIndex].chunk);
+    --endIndex;
     
     // Get chunk number
     int chunknum = transEntries[startIndex].chunk;
