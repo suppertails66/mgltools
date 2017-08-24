@@ -20,7 +20,7 @@ PREFIX := /usr/local
 BINDIR := $(PREFIX)/bin
 INSTALL := install
 
-tools = sjis_srch mgl_strtab_extr mgl_str_insr mgl_str_fmtconv mgl_img_decmp mgl_img_cmp mgl_img_inject mgl_grp_conv mgl_img_extr mgl_img_insr mgl_fieldbod_extr mgl_script_extr
+tools = sjis_srch mgl_strtab_extr mgl_str_insr mgl_str_fmtconv mgl_img_decmp mgl_img_cmp mgl_img_inject mgl_grp_conv mgl_img_extr mgl_img_insr mgl_fieldbod_extr mgl_script_extr mgl_dlog_insr
 
 all: blackt $(OBJ) $(tools)
 	
@@ -59,6 +59,9 @@ mgl_fieldbod_extr: blackt $(OBJ)
 	
 mgl_script_extr: blackt $(OBJ)
 	$(CXX) $(OBJ) src/mgl_script_extr.cpp -o mgl_script_extr $(CXXFLAGS)
+	
+mgl_dlog_insr: blackt $(OBJ)
+	$(CXX) $(OBJ) src/mgl_dlog_insr.cpp -o mgl_dlog_insr $(CXXFLAGS)
 
 -include $(DEP)
 

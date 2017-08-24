@@ -1,6 +1,7 @@
 Collection of tools for Mahou Gakuen Lunar!.
 
 sjis_srch: Searches a file for specifically formatted Shift_JIS strings.
+mgl_dlog_insr: Dialogue inserter utility.
 mgl_fieldbod_extr: Extractor for overworld character potraits in FIELD.BOD.
 mgl_grp_conv: Graphic conversion utility.
 mgl_img_decmp: Decompressor for image data.
