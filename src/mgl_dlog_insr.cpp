@@ -229,7 +229,7 @@ void updateChunk(char* buffer, int realChunkSize,
     TransFileEntry& entry = transFileEntries[i];
     
     // Offset of the offset to update for this entry
-    int textOffsetOffset = dialogueOffsetTableOffset + (i * 4);
+    int textOffsetOffset = dialogueOffsetTableOffset + ((i - startIndex) * 4);
     
     string englishString;
     bigCharsToString(entry.english, englishString);
@@ -237,6 +237,7 @@ void updateChunk(char* buffer, int realChunkSize,
     string formattedString;
     
     int getpos = 0;
+    bool nowait = false;
     while (getpos < englishString.size()) {
       // read next character (accounting for control codes, etc.)
       char nextchar = readNextChar(englishString, getpos);
@@ -244,6 +245,7 @@ void updateChunk(char* buffer, int realChunkSize,
       // early terminator = stop!
       // terminator will be added below
       if (nextchar == opcodeTerminateMessage) {
+        nowait = true;
         break;
       }
       
@@ -251,11 +253,22 @@ void updateChunk(char* buffer, int realChunkSize,
       formattedString += nextchar;
     }
     
+    // add final wait-for-button command, unless nowait is on
+    if (!nowait) {
+      formattedString += opcodeWaitForInput;
+    }
+    
     // add terminator
     formattedString += opcodeTerminateMessage;
     
+//    cout << dec << entry.chunk << " " << hex << entry.offset << endl;
+//    cout << dec;
+    
     // if there's enough room, insert into original file
     if (putpos + formattedString.size() <= realChunkSize) {
+//      cout << hex << textOffsetOffset << endl;
+//      cout << dec;
+    
       ByteConversion::toBytes(putpos, buffer + textOffsetOffset, 4,
         EndiannessTypes::big, SignednessTypes::nosign);
       for (int i = 0; i < formattedString.size(); i++) {
