@@ -244,7 +244,13 @@ struct ScriptChunk {
         // anything else: add to string
         dialogue += next;
         ++endcheck;
-        endedWith08 = false;
+        // newlines don't count as "printable input"
+        // this fixes a rare issue where, if a wait-for-button opcode is
+        // followed by one or more newlines and then the message terminator,
+        // it will be incorrectly detected as a NOWAIT
+        // the fact that this error was even possible doesn't speak well of
+        // the utilities used to write this game's dialogue
+        if (next != '\n') endedWith08 = false;
       }
       
       // If the dialogue window was *not* closed with a 0x08 command,
