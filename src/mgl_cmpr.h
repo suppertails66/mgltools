@@ -233,6 +233,21 @@ bool fileExists(const std::string& filename) {
   return fsize(ifs) >= 0;
 }
 
+BlackT::TColor saturnToRealColor(int rawColor) {
+  int b = (rawColor & 0x7C00) >> 7;
+  int g = (rawColor & 0x03E0) >> 2;
+  int r = (rawColor & 0x001F) << 3;
+  return BlackT::TColor(r, g, b, BlackT::TColor::fullAlphaOpacity);
+}
+
+int realToSaturnColor(BlackT::TColor color) {
+  int rawColor = 0;
+  rawColor |= ((color.b() & 0xF1) << 7);
+  rawColor |= ((color.g() & 0xF1) << 2);
+  rawColor |= ((color.r() & 0xF1) >> 3);
+  return rawColor;
+}
+
 // Decompresses image data, returning size of the decompressed data
 int decompressMglImg(const unsigned char* input,
                      int length,
@@ -480,6 +495,32 @@ void read4bppGraphicGrayscale(const unsigned char* src,
     
     BlackT::TColor color1 = pixelToColor4bpp(pix1);
     BlackT::TColor color2 = pixelToColor4bpp(pix2);
+    
+    placePixel(dst, color1, (i * 2));
+    placePixel(dst, color2, (i * 2) + 1);
+    
+    src++;
+  }
+}
+
+// Read a 4bpp graphic from raw data into a TGraphic.
+// The resulting TGraphic is colored according to the provided palette.
+// Zero values are treated as transparent.
+void read4bppGraphicPalettized(const unsigned char* src,
+                              BlackT::TGraphic& dst,
+                              int width,
+                              int height,
+                              const std::vector<BlackT::TColor>& palette) {
+  dst.resize(width, height);
+  
+  int numBytes = (width * height) / 2;
+  
+  for (int i = 0; i < numBytes; i++) {
+    int pix1 = (*src & 0xF0) >> 4;
+    int pix2 = (*src & 0x0F);
+    
+    BlackT::TColor color1 = palette[pix1];
+    BlackT::TColor color2 = palette[pix2];
     
     placePixel(dst, color1, (i * 2));
     placePixel(dst, color2, (i * 2) + 1);
