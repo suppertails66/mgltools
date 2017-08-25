@@ -41,6 +41,16 @@ public:
         TByte g__,
         TByte b__,
         TByte a__ = fullAlphaOpacity);
+
+  /**
+   * Equality overload.
+   */
+  bool operator==(const BlackT::TColor& other);
+
+  /**
+   * Inequality overload.
+   */
+  bool operator!=(const BlackT::TColor& other);
   
   /**
    * Array-based constructor.

@@ -242,9 +242,9 @@ BlackT::TColor saturnToRealColor(int rawColor) {
 
 int realToSaturnColor(BlackT::TColor color) {
   int rawColor = 0;
-  rawColor |= ((color.b() & 0xF1) << 7);
-  rawColor |= ((color.g() & 0xF1) << 2);
-  rawColor |= ((color.r() & 0xF1) >> 3);
+  rawColor |= ((color.b() & 0xF8) << 7);
+  rawColor |= ((color.g() & 0xF8) << 2);
+  rawColor |= ((color.r() & 0xF8) >> 3);
   return rawColor;
 }
 

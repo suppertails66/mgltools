@@ -23,6 +23,18 @@ TColor::TColor(const TByte* src)
     r_(src[2]),
     g_(src[1]),
     b_(src[0]) { };
+    
+bool TColor::operator==(const BlackT::TColor& other) {
+  if ((r_ == other.r_)
+      && (g_ == other.g_)
+      && (b_ == other.b_)
+      && (a_ == other.a_)) return true;
+  return false;
+}
+
+bool TColor::operator!=(const BlackT::TColor& other) {
+  return !(*this == other);
+}
         
 TByte TColor::a() const {
   return a_;
