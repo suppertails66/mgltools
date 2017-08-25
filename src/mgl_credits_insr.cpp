@@ -69,25 +69,25 @@ void imageToGrayscale(TGraphic& src, TGraphic& dst,
 }
 
 int main(int argc, char* argv[]) {
-  if (argc < 6) {
+  if (argc < 5) {
     cout << "Credits image inserter for Mahou Gakuen Lunar!" << endl;
-    cout << "Usage: " << argv[0] << " <image> <palette>"
+    cout << "Usage: " << argv[0] << " <image>"
       << " <outfile> <datapos> <mappos>" << endl;
     return 0;
   }
   
   char* imagename = argv[1];
-  char* palettename = argv[2];
-  char* outfilename = argv[3];
-  int datapos = TStringConversion::stringToInt(string(argv[4]));
-  int mappos = TStringConversion::stringToInt(string(argv[5]));
+//  char* palettename = argv[2];
+  char* outfilename = argv[2];
+  int datapos = TStringConversion::stringToInt(string(argv[3]));
+  int mappos = TStringConversion::stringToInt(string(argv[4]));
   
   // Read the source image
   TGraphic img;
   TPngConversion::RGBAPngToGraphic(string(imagename), img);
   
   // Read the palette
-  BufferedFile palettefile = getFile(palettename);
+/*  BufferedFile palettefile = getFile(palettename);
   vector<TColor> palette;
   vector<int> rawPalette;
   for (int i = 0; i < 16; i++) {
@@ -95,13 +95,36 @@ int main(int argc, char* argv[]) {
       EndiannessTypes::big, SignednessTypes::nosign);
     palette.push_back(saturnToRealColor(rawColor));
     rawPalette.push_back(rawColor);
+  } */
+  
+  // Generate palette from source image
+  vector<TColor> palette;
+  vector<int> rawPalette;
+  map<int, int> colorsToIndices;
+  for (int j = 0; j < img.h(); j++) {
+    for (int i = 0; i < img.w(); i++) {
+      TColor color = img.getPixel(i, j);
+      int rawColor = realToSaturnColor(color);
+      
+      // If color isn't already in palette, add it
+      map<int, int>::iterator findIt = colorsToIndices.find(rawColor);
+      if (findIt == colorsToIndices.end()) {
+        palette.push_back(color);
+        rawPalette.push_back(rawColor);
+        colorsToIndices[rawColor] = palette.size() - 1;
+      }
+    }
+  }
+  
+  if (palette.size() > 16) {
+    cerr << "Error: image uses more than 16 colors!" << endl;
+    exit(3);
   }
   
   // Map raw palette colors to indices
-  map<int, int> colorsToIndices;
-  for (int i = 0; i < palette.size(); i++) {
-    colorsToIndices[rawPalette[i]] = i;
-  }
+//  for (int i = 0; i < palette.size(); i++) {
+//    colorsToIndices[rawPalette[i]] = i;
+//  }
   
   // Initialize the tilemap
   int tilemapH = (img.h() / tileH);
@@ -190,6 +213,13 @@ int main(int argc, char* argv[]) {
   
   // Update data
   
+  // Write palette
+  for (int i = 0; i < rawPalette.size(); i++) {
+    ByteConversion::toBytes(rawPalette[i],
+      outfile.buffer + datapos + 0 + (i * 2), 2,
+      EndiannessTypes::big, SignednessTypes::nosign);
+  }
+  
   // Convert tiles to data
   char compressionBuffer[compressionBufferSize];
   int dataPutPos = 0;
@@ -248,7 +278,7 @@ int main(int argc, char* argv[]) {
   
   saveFile(outfile, outfilename);
   
-  delete palettefile.buffer;
+//  delete palettefile.buffer;
   delete outfile.buffer;
   
   return 0;
