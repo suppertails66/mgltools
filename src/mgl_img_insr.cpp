@@ -212,9 +212,13 @@ int main(int argc, char* argv[]) {
     entry.vramTableEntry.setPaletteOffset(
       paletteNameToOffset[entry.paletteFileName]);
     
-    // Update image dimensions *only* if the image is not purposely offset
+    // If (a) the image has changed size, and (b) is not doing something
+    // stupid like recycling the top line of another graphic to create a
+    // blank one, then update its dimensions
     TGraphic& g = images[imageNameToIndex[entry.imageFileName]];
-    if (!entry.vramTableEntry.isDoingSomethingStupid(g.w(), g.h())) {
+    if (((entry.vramTableEntry.width() != g.w())
+        || (entry.vramTableEntry.height() != g.h()))
+        && !entry.vramTableEntry.isDoingSomethingStupid(g.w(), g.h())) {
       entry.vramTableEntry.setDimensions(g.w(), g.h());
     }
     
