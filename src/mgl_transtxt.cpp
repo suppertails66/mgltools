@@ -10,6 +10,9 @@
 
 using namespace std;
 
+// Offset that converts from regular to reduced-width ASCII font
+const int smallConvertOffset = 96;
+
 int fsize(std::istream& ifs) {
   int pos = ifs.tellg();
   ifs.seekg(0, std::ios_base::end);
@@ -222,6 +225,7 @@ void readStringLiteralNew(std::istream& ifs, std::string& str) {
 //  getline(ifs, temp);
   
   bool escaping = false;
+  bool smallconvert = false;
   while (true) {
     // check for 2-byte SJIS sequences
     unsigned int sjischeck = ifs.peek();
@@ -257,6 +261,10 @@ void readStringLiteralNew(std::istream& ifs, std::string& str) {
         str += (char)c;
         continue;
       }
+      else if (ifs.peek() == 's') {
+        // toggle small font conversion
+        smallconvert = !smallconvert;
+      }
       else {
         str += ifs.get();
         continue;
@@ -267,7 +275,8 @@ void readStringLiteralNew(std::istream& ifs, std::string& str) {
     // terminator: non-escaped comma or newline
     if (!escaping && ((next == ',') || (next == '\n'))) break;
     
-    str += next;
+    if (smallconvert)  str += (next + smallConvertOffset);
+    else str += next;
   }
   
 //  ifs.get();
