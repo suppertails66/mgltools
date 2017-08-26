@@ -19,6 +19,8 @@ const int vramCatBufferSize = 0x100000;
 // Size of the buffer used to compress the VRAM data
 const int vramCompressionBufferSize = 0x100000;
 
+const int sectorSize = 0x800;
+
 int main(int argc, char* argv[]) {
   
   // mgl_img_insr indexfile indexoffset outindex imagefile imageoffset outimage inpath
@@ -128,6 +130,13 @@ int main(int argc, char* argv[]) {
   int originalImageSize = ByteConversion::fromBytes(imageP + 0, 4,
     EndiannessTypes::big, SignednessTypes::nosign);
   
+  // The image data is followed by sector padding, so we have that much extra
+  // space available
+  if ((originalImageSize % sectorSize) != 0) {
+    originalImageSize
+      = ((originalImageSize / sectorSize) * sectorSize) + sectorSize;
+  }
+  
   // Make sure there's enough room for the new data
   if (compressedDataSize > originalImageSize) {
     cerr << "Error: compressed data too large!" << endl;
@@ -140,6 +149,31 @@ int main(int argc, char* argv[]) {
   std::memcpy(imageP + 4, vramCompressionBuffer, compressedDataSize);
   ByteConversion::toBytes(compressedDataSize, imageP + 0, 4,
     EndiannessTypes::big, SignednessTypes::nosign);
+    
+  // Update the chunk size.
+  // This is really hacky, but we know that the offset we were given is
+  // the start of a chunk, so we can just search the index until we find
+  // the chunk entry, then update its size
+  int indexcheck;
+  for (indexcheck = 0; indexcheck < 0x800; indexcheck += 8) {
+    int offset = ByteConversion::fromBytes(
+      imageFile.buffer + indexcheck, 4,
+      EndiannessTypes::big, SignednessTypes::nosign);
+      
+    // write updated size to chunk index
+    if (offset == imageOffset) {
+      ByteConversion::toBytes(
+        compressedDataSize, imageFile.buffer + indexcheck + 4, 4,
+        EndiannessTypes::big, SignednessTypes::nosign);
+      break;
+    }
+  }
+  
+  // couldn't find chunk
+  if (indexcheck >= 0x800) {
+    cerr << "Error: couldn't find chunk index entry" << endl;
+    return 1;
+  }
   
 //  cout << originalImageSize << " " << compressedDataSize << endl;
 
