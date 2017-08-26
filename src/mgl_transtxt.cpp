@@ -263,7 +263,9 @@ void readStringLiteralNew(std::istream& ifs, std::string& str) {
       }
       else if (ifs.peek() == 's') {
         // toggle small font conversion
+        ifs.get();
         smallconvert = !smallconvert;
+        continue;
       }
       else {
         str += ifs.get();
