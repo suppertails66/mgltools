@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     // write updated size to chunk index
     if (offset == imageOffset) {
       ByteConversion::toBytes(
-        compressedDataSize, imageFile.buffer + indexcheck + 4, 4,
+        compressedDataSize + 4, imageFile.buffer + indexcheck + 4, 4,
         EndiannessTypes::big, SignednessTypes::nosign);
       break;
     }
