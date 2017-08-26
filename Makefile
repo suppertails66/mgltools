@@ -20,7 +20,7 @@ PREFIX := /usr/local
 BINDIR := $(PREFIX)/bin
 INSTALL := install
 
-tools = sjis_srch mgl_strtab_extr mgl_str_insr mgl_str_fmtconv mgl_img_decmp mgl_img_cmp mgl_img_inject mgl_grp_conv mgl_img_extr mgl_img_insr mgl_fieldbod_extr mgl_script_extr mgl_dlog_insr mgl_credits_extr mgl_credits_insr
+tools = sjis_srch mgl_strtab_extr mgl_str_insr mgl_str_fmtconv mgl_img_decmp mgl_img_cmp mgl_img_inject mgl_grp_conv mgl_img_extr mgl_img_insr mgl_fieldbod_extr mgl_script_extr mgl_dlog_insr mgl_credits_extr mgl_credits_insr mgl_ascii_extr mgl_ascii_build
 
 all: blackt $(OBJ) $(tools)
 	
@@ -68,6 +68,12 @@ mgl_credits_extr: blackt $(OBJ)
 	
 mgl_credits_insr: blackt $(OBJ)
 	$(CXX) $(OBJ) src/mgl_credits_insr.cpp -o mgl_credits_insr $(CXXFLAGS)
+	
+mgl_ascii_extr: blackt $(OBJ)
+	$(CXX) $(OBJ) src/mgl_ascii_extr.cpp -o mgl_ascii_extr $(CXXFLAGS)
+	
+mgl_ascii_build: blackt $(OBJ)
+	$(CXX) $(OBJ) src/mgl_ascii_build.cpp -o mgl_ascii_build $(CXXFLAGS)
 
 -include $(DEP)
 
