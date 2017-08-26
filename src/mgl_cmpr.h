@@ -76,6 +76,23 @@ struct VramTableEntry {
     cmdyd = (h / 2) - 1;
   }
   
+  // Returns true if cmda-cmdd specify that the image is not centered
+  bool isOffset() {
+    int w = width();
+    int h = height();
+    
+    if (-(cmdxa * 2) != w) return false;
+    if (-(cmdya * 2) != h) return false;
+    if (((cmdxb + 1) * 2) != w) return false;
+    if (-(cmdyb * 2) != h) return false;
+    if (-(cmdxc * 2) != w) return false;
+    if (((cmdyc + 1) * 2) != h) return false;
+    if (((cmdxd + 1) * 2) != w) return false;
+    if (((cmdyd + 1) * 2) != h) return false;
+    
+    return true;
+  }
+  
   int sourceOffset() const {
     return (cmdsrca * 8);
   }
