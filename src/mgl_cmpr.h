@@ -332,6 +332,88 @@ int decompressMglImg(const unsigned char* input,
   return outputBufPos;
 }
 
+// Special alternate decompression routine.
+// This is exactly the same as the regular one, except rather than knowing the
+// size of the compressed data and stopping when it's all been handled, we
+// now know the size of the *output* data and stop when we've done that much.
+// Don't ask me why someone thought this was necessary.
+void decompressMglImgOfSize(const unsigned char* input,
+                     int length,
+                     unsigned char* outputBuf) {
+  // prepare decompression buffer
+  unsigned char decmpBuf[decmpBufferSize];
+  std::memset(decmpBuf, 0, decmpBufferSize);
+  
+  int inputPos = 0;
+  int decmpBufPos = decmpBufferStartPos;
+  int outputBufPos = 0;
+  int nextCommandByteCounter = 0;
+  int commandByte = 0;
+  
+  // decompress the data
+  while (outputBufPos < length) {
+    // have we consumed all the bits in the command byte?
+    // (the use of a bitshift counter instead of a for loop here is to more
+    // closely match the structure of the original function)
+    bool commandNeeded = !(nextCommandByteCounter & 0x01);
+    nextCommandByteCounter >>= 1;
+    
+    // if so, read a new command byte
+    if (commandNeeded) {
+      commandByte = input[inputPos++];
+      
+      // reset counter to next command
+      nextCommandByteCounter = 0x7F;
+    }
+    
+    // get next command bit
+    int command = commandByte & 0x01;
+    commandByte >>= 1;
+    
+    // get next byte
+    unsigned char byte1 = input[inputPos++];
+    
+    // command bit set: absolute
+    if ((bool)command) {
+      // write to output and decompression buffers
+      outputBuf[outputBufPos++] = byte1;
+      decmpBuf[decmpBufPos++] = byte1;
+      
+      // wrap decompression buffer
+      decmpBufPos &= decmpBufferWrap;
+
+      // break if done
+      if (outputBufPos >= length) break;
+    }
+    // command bit unset: relative
+    else {
+      // get next byte
+      unsigned char byte2 = input[inputPos++];
+      
+      // the high nybble of byte2 combines with byte1 to form a 12-bit absolute
+      // offset into the decompression buffer
+      int offset = ((int)(byte2 & 0xF0) << 4) | byte1;
+      
+      // the low nybble of byte2 is the loop count, minus 3
+      int numLoops = (byte2 & 0x0F) + 3;
+      
+      // copy characters from decompression buffer
+      for (int i = 0; i < numLoops; i++) {
+        // get next char (wrapping around buffer if necessary)
+        unsigned char next = decmpBuf[(offset + i) & decmpBufferWrap];
+        
+        // write to output and decompression buffers
+        outputBuf[outputBufPos++] = next;
+        decmpBuf[decmpBufPos++] = next;
+        decmpBufPos &= decmpBufferWrap;
+      
+        // break if done
+        if (outputBufPos >= length) break;
+      }
+    }
+  }
+}
+
 struct MatchResult {
   int pos;
   int len;
@@ -556,11 +638,10 @@ void read8bppGraphicPalettized(const unsigned char* src,
                               BlackT::TGraphic& dst,
                               int width,
                               int height,
-                              std::vector<BlackT::TColor> palette) {
+                              const std::vector<BlackT::TColor>& palette) {
   dst.resize(width, height);
   
   int numBytes = (width * height);
-  
   for (int i = 0; i < numBytes; i++) {
     int pix1 = (*src);
     
