@@ -84,19 +84,19 @@ struct VramTableEntry {
 //    int w = width();
 //    int h = height();
 
-    if (w != width()) return false;
-    if (h != height()) return false;
+    if (w != width()) return true;
+    if (h != height()) return true;
     
-    if (-(cmdxa * 2) != w) return false;
-    if (-(cmdya * 2) != h) return false;
-    if (((cmdxb + 1) * 2) != w) return false;
-    if (-(cmdyb * 2) != h) return false;
-    if (-(cmdxc * 2) != w) return false;
-    if (((cmdyc + 1) * 2) != h) return false;
-    if (((cmdxd + 1) * 2) != w) return false;
-    if (((cmdyd + 1) * 2) != h) return false;
+    if (-(cmdxa * 2) != w) return true;
+    if (-(cmdya * 2) != h) return true;
+    if (((cmdxb + 1) * 2) != w) return true;
+    if (-(cmdyb * 2) != h) return true;
+    if (-(cmdxc * 2) != w) return true;
+    if (((cmdyc + 1) * 2) != h) return true;
+    if (((cmdxd + 1) * 2) != w) return true;
+    if (((cmdyd + 1) * 2) != h) return true;
     
-    return true;
+    return false;
   }
   
   int sourceOffset() const {
