@@ -84,8 +84,11 @@ struct VramTableEntry {
 //    int w = width();
 //    int h = height();
 
-    if (w != width()) return true;
-    if (h != height()) return true;
+//    if (w != width()) return true;
+//    if (h != height()) return true;
+
+    // images with a height of 1 are stupid
+    if (h == 1) return true;
     
     if (-(cmdxa * 2) != w) return true;
     if (-(cmdya * 2) != h) return true;
