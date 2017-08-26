@@ -55,6 +55,8 @@ int main(int argc, char* argv[]) {
   // Maps of file names to their offsets in the VRAM buffer
   map<string, int> imageNameToOffset;
   map<string, int> paletteNameToOffset;
+  map<string, int> imageNameToIndex;
+  vector<TGraphic> images;
   
   // Load the glue file
   vector<GlueFileEntry> glueFileEntries;
@@ -78,6 +80,12 @@ int main(int argc, char* argv[]) {
     
     // Record image data offset
     imageNameToOffset[baseFilename] = vramCatBufferPos;
+    
+    // Record index position
+    imageNameToIndex[baseFilename] = i;
+    
+    // Record image
+    images.push_back(g);
     
     // Convert to 4bpp
     vramCatBufferPos += writeGraphic4bpp(g,
@@ -203,6 +211,10 @@ int main(int argc, char* argv[]) {
       imageNameToOffset[entry.imageFileName]);
     entry.vramTableEntry.setPaletteOffset(
       paletteNameToOffset[entry.paletteFileName]);
+    
+    // Update image dimensions
+    TGraphic& g = images[imageNameToIndex[entry.imageFileName]];
+    entry.vramTableEntry.setDimensions(g.w(), g.h());
     
 //    cout << entry.vramTableEntry.paletteOffset() << endl;
     

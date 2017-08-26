@@ -55,6 +55,27 @@ struct VramTableEntry {
     return (cmdsize & 0x00FF);
   }
   
+  void setDimensions(int w, int h) {
+    // update cmdsize
+    int newcmdsize = w;
+    newcmdsize >>= 3;
+    newcmdsize <<= 8;
+    newcmdsize |= h;
+    cmdsize = newcmdsize;
+    
+    // update cmda-cmdd
+    // they should outline a rectangle centered around (0,0), with right and
+    // bottom coordinates offset by -1
+    cmdxa = -(w / 2);
+    cmdya = -(h / 2);
+    cmdxb = (w / 2) - 1;
+    cmdyb = -(h / 2);
+    cmdxc = -(w / 2);
+    cmdyc = (h / 2) - 1;
+    cmdxd = (w / 2) - 1;
+    cmdyd = (h / 2) - 1;
+  }
+  
   int sourceOffset() const {
     return (cmdsrca * 8);
   }
