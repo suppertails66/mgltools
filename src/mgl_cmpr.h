@@ -76,10 +76,17 @@ struct VramTableEntry {
     cmdyd = (h / 2) - 1;
   }
   
-  // Returns true if cmda-cmdd specify that the image is not centered.
+  // Returns true if cmda-cmdd specify that the image is not centered,
+  // or is otherwise doing something abnormal
   // w and h are the true image dimensions (as opposed to the nominal ones in
   // cmdsize)
-  bool isOffset(int w, int h) {
+  bool isDoingSomethingStupid(int w, int h) {
+//    int w = width();
+//    int h = height();
+
+    if (w != width()) return false;
+    if (h != height()) return false;
+    
     if (-(cmdxa * 2) != w) return false;
     if (-(cmdya * 2) != h) return false;
     if (((cmdxb + 1) * 2) != w) return false;

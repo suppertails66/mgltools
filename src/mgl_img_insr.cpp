@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     
     // Update image dimensions *only* if the image is not purposely offset
     TGraphic& g = images[imageNameToIndex[entry.imageFileName]];
-    if (!entry.vramTableEntry.isOffset(g.w(), g.h())) {
+    if (!entry.vramTableEntry.isDoingSomethingStupid(g.w(), g.h())) {
       entry.vramTableEntry.setDimensions(g.w(), g.h());
     }
     
