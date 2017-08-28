@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "utf8.h"
+#include "csv_utf8.h"
 #include "util/TStringConversion.h"
 #include "util/ByteConversion.h"
 
@@ -31,96 +32,6 @@ const static char opcodeClearBox          = 0x0C;
 const static char opcodePausePrinting     = 0x0D;
 
 int chunkIndexEntrySize = 8;
-
-int fsize(istream& ifs) {
-  int old = ifs.tellg();
-  ifs.seekg(0, ios_base::end);
-  int sz = ifs.tellg();
-  ifs.seekg(old);
-  return sz;
-}
-
-int findDelimiter(BigChars& chars, int pos, string delimiters) {
-/*  bool escaping = false;
-  while (pos < chars.size()) {
-    if (chars[pos] == (int)'"') escaping = !escaping;
-    else if (!escaping) {
-      // check for each delimiter
-      for (int j = 0; j < delimiters.size(); j++) {
-        if (chars[pos] == (int)(delimiters[j])) return pos;
-      }
-    }
-    
-    ++pos;
-  }
-  
-  // reached EOF: assume end of row
-  return pos; */
-  
-  while (pos < chars.size()) {
-    // check for each delimiter
-    for (int j = 0; j < delimiters.size(); j++) {
-      if (chars[pos] == (int)(delimiters[j])) return pos;
-    }
-    
-    ++pos;
-  }
-  
-  // reached EOF: assume end of row
-  return pos;
-}
-
-void bigCharsToString(BigChars& chars, int pos, int endpos, string& dst) {
-  for (int i = pos; i < endpos; i++) {
-    // input better be ascii!
-    dst += (char)(chars[i]);
-  }
-}
-
-void bigCharsToString(BigChars& chars, string& dst) {
-  // input better be ascii!
-  for (int i = 0; i < chars.size(); i++) {
-    dst += (char)(chars[i]);
-  }
-}
-
-int readCsvFieldToBigChars(BigChars& chars, int pos, BigChars& dst) {
-  int endpos;
-  bool isEscaped = false;
-  // if cell is escaped, search for quotation mark delimiter
-  if (chars[pos] == '"') {
-    isEscaped = true;
-    ++pos;
-    endpos = findDelimiter(chars, pos, "\"");
-  }
-  // otherwise, search for comma or newline
-  else {
-    endpos = findDelimiter(chars, pos, ",\n");
-  }
-  
-  for (int i = pos; i < endpos; i++) {
-    // fuck fucking shit
-    // why is libreoffice using double right quotes instead of real ones
-    if (chars[i] == 0x201D) {
-      dst.push_back('"');
-    }
-    else {
-      dst.push_back(chars[i]);
-    }
-  }
-  
-  // if cell is escaped, skip end quote
-  if (isEscaped) ++endpos;
-  
-  return endpos + 1;
-}
-
-int readCsvFieldToString(BigChars& chars, int pos, string& dst) {
-  BigChars temp;
-  int endpos = readCsvFieldToBigChars(chars, pos, temp);
-  bigCharsToString(temp, dst);
-  return endpos;
-}
 
 struct TransFileEntry {
   int chunk;

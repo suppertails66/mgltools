@@ -31,7 +31,7 @@ mgl_strtab_extr: blackt $(OBJ)
 	$(CXX) $(OBJ) src/mgl_transtxt.cpp src/mgl_strtab_extr.cpp -o mgl_strtab_extr $(CXXFLAGS)
 	
 mgl_str_insr: blackt $(OBJ)
-	$(CXX) $(OBJ) src/mgl_transtxt.cpp src/mgl_str_insr.cpp -o mgl_str_insr $(CXXFLAGS)
+	$(CXX) $(OBJ) src/mgl_transtxt.cpp src/csv_utf8.cpp src/mgl_str_insr.cpp -o mgl_str_insr $(CXXFLAGS)
 	
 mgl_str_fmtconv: blackt $(OBJ)
 	$(CXX) $(OBJ) src/mgl_transtxt.cpp src/mgl_str_fmtconv.cpp -o mgl_str_fmtconv $(CXXFLAGS)

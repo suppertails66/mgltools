@@ -9,6 +9,7 @@
 #include <cctype>
 
 using namespace std;
+using namespace BlackT;
 
 // Offset that converts from regular to reduced-width ASCII font
 const int smallConvertOffset = 96;
@@ -283,6 +284,49 @@ void readStringLiteralNew(std::istream& ifs, std::string& str) {
   
 //  ifs.get();
 }
+
+void escapeRawString(const std::string& src, std::string& dst) {
+  dst = "";
+  
+  bool smallconvert = false;
+  int pos = 0;
+  while (pos < src.size()) {
+    // check escape sequences
+    if ((pos < src.size() - 1) && (src[pos] == '\\')) {
+      ++pos;
+      
+      if (src[pos] == 'x') {
+        ++pos;
+        
+        // read 2-digit hex literal
+        string value;
+        value += src[pos++];
+        value += src[pos++];
+        istringstream iss;
+        iss.str(value);
+        int c = 0;
+        iss >> hex >> c;
+        dst += (char)c;
+        continue;
+      }
+      else if (src[pos] == 's') {
+        // toggle small font conversion
+        ++pos;
+        smallconvert = !smallconvert;
+        continue;
+      }
+      else {
+        dst += src[pos++];
+        continue;
+      }
+    }
+    
+    char next = src[pos++];
+    
+    if (smallconvert) dst += (next + smallConvertOffset);
+    else dst += next;
+  }
+}
   
 void TranslationEntry::save(std::ostream& ofs) {
   ofs << "#############################" << endl;
@@ -433,6 +477,48 @@ void TranslationEntry::loadNew(std::istream& ifs) {
   
   if ((signed int)originalSize == -1) originalSize = originalText.size();
 }
+
+void TranslationEntry::fromCsvUtf8(std::vector<BigChars>& fields) {
+  if (fields.size() < 6) {
+    cerr << "Error: fromCsvUtf8: Not enough fields ("
+      << fields.size() << ")" << endl;
+    return;
+  }
+  
+  bigCharsToString(fields[0], sourceFile);
+  
+  string offset;
+  bigCharsToString(fields[1], offset);
+  sourceFileOffset = TStringConversion::stringToInt(offset);
+  
+  string pointersString;
+  bigCharsToString(fields[2], pointersString);
+  
+  // fuck the c++ stdlib
+  // forever
+  istringstream iss(pointersString);
+  string numPointersString;
+  iss >> numPointersString;
+  int numPointers = TStringConversion::stringToInt(numPointersString);
+  
+  for (int i = 0; i < numPointers; i++) {
+    string pointString;
+    iss >> pointString;
+    int point = TStringConversion::stringToInt(pointString);
+    pointers.push_back(point);
+  }
+  
+  string originalSizeString;
+  bigCharsToString(fields[3], originalSizeString);
+  iss.str(originalSizeString);
+  originalSize = TStringConversion::stringToInt(originalSizeString);
+  
+  // ignore original text -- we don't need it
+  
+  string translatedTextRaw;
+  bigCharsToString(fields[5], translatedTextRaw);
+  escapeRawString(translatedTextRaw, translatedText);
+}
   
 void TranslationFile::load(std::istream& ifs) {
   while (ifs.good()) {
@@ -457,6 +543,15 @@ void TranslationFile::loadNew(std::istream& ifs) {
     filenameEntriesMap[entry.sourceFile].push_back(entry);
     
     advance(ifs);
+  }
+}
+
+void TranslationFile::fromCsvUtf8(std::vector < std::vector<BigChars> >& csv) {
+  // skip header row
+  for (int i = 1; i < csv.size(); i++) {
+    TranslationEntry entry;
+    entry.fromCsvUtf8(csv[i]);
+    filenameEntriesMap[entry.sourceFile].push_back(entry);
   }
 }
   

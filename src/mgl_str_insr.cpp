@@ -1,4 +1,5 @@
 #include "mgl_transtxt.h"
+#include "csv_utf8.h"
 #include "util/ByteConversion.h"
 #include <iostream>
 #include <fstream>
@@ -38,10 +39,17 @@ int main(int argc, char* argv[]) {
     string transFileName = argv[i];
     
     // Read translation file
-    ifstream ifs(transFileName.c_str());
+/*    ifstream ifs(transFileName.c_str());
     TranslationFile translationFile;
 //    translationFile.load(ifs);
     translationFile.loadNew(ifs);
+    ifs.close(); */
+    
+    ifstream ifs(transFileName.c_str());
+    vector< vector<BigChars> > csv;
+    readCsvUtf8(ifs, csv);
+    TranslationFile translationFile;
+    translationFile.fromCsvUtf8(csv);
     ifs.close();
     
     // Handle each file
