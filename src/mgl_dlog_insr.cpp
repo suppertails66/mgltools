@@ -4,6 +4,7 @@
 #include <vector>
 #include "utf8.h"
 #include "csv_utf8.h"
+#include "mgl_cmpr.h"
 #include "util/TStringConversion.h"
 #include "util/ByteConversion.h"
 

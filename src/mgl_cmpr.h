@@ -1,3 +1,7 @@
+#ifndef MGL_CMPR_H
+#define MGL_CMPR_H
+
+
 #include "util/TGraphic.h"
 #include "util/ByteConversion.h"
 #include "util/TStringConversion.h"
@@ -737,3 +741,6 @@ int writeGraphic4bpp(BlackT::TGraphic& src,
   
   return putpos;
 }
+
+
+#endif

@@ -146,6 +146,18 @@ int main(int argc, char* argv[]) {
   case ProgramModes::colorize:
     colorizeImage(image, palette, dst,
                   true);
+/*    {
+    TGraphic pal;
+    pal.resize(256, 16);
+    pal.clearTransparent();
+    for (int i = 0; i < palette.size(); i++) {
+      TRect box(i * 16, 0, i * 16, 0);
+      pal.fillRect(i * 16, 0, 16, 16, palette[i]);
+    }
+    TPngConversion::graphicToRGBAPng(
+      string(outfilename).substr(0, strlen(outfilename) - 4)
+        + "_colors.png", pal);
+    } */
     break;
   case ProgramModes::decolorize:
     decolorizeImage(image, palette, dst
