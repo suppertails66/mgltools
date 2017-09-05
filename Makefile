@@ -90,12 +90,10 @@ mgl_titleimg_extr: blackt $(OBJ)
 mgl_colorize: blackt $(OBJ)
 	$(CXX) $(ODIR)/mgl_colorize.o -o mgl_colorize $(CXXFLAGS)
 
-blackt: blackt/libblackt.a
-
-blackt/libblackt.a:
+blackt:
 	cd ./blackt && $(MAKE) && cd $(CURDIR)
 
-.PHONY: clean cleanme install
+.PHONY: blackt clean cleanme install
 
 # Clean mgltools
 cleanme:
