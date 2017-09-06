@@ -2,6 +2,7 @@
 #define MGLTRANSTXT_H
 
 
+#include "csv_utf8.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -33,6 +34,7 @@ struct TranslationEntry {
   void saveNew(std::ostream& ofs);
   void load(std::istream& ifs);
   void loadNew(std::istream& ifs);
+  void fromCsvUtf8(std::vector<BigChars>& fields);
   
 };
 
@@ -48,6 +50,7 @@ struct TranslationFile {
   void loadNew(std::istream& ifs);
   void save(std::ostream& ofs);
   void saveNew(std::ostream& ofs);
+  void fromCsvUtf8(std::vector < std::vector<BigChars> >& csv);
 };
 
 struct FreeSpaceEntry {
