@@ -91,7 +91,7 @@ mgl_colorize: blackt $(OBJ)
 	$(CXX) $(ODIR)/mgl_colorize.o -o mgl_colorize $(CXXFLAGS)
 
 blackt:
-	cd ./blackt && $(MAKE) && cd $(CURDIR)
+	$(MAKE) -C blackt
 
 .PHONY: blackt clean cleanme install
 
@@ -103,7 +103,7 @@ cleanme:
 
 # Clean mgltools and libraries
 clean: cleanme
-	cd ./blackt && $(MAKE) clean && cd $(CURDIR)
+	$(MAKE) -C blackt clean
 
 install: all
 	$(INSTALL) -d $(BINDIR)
