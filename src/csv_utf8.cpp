@@ -72,6 +72,14 @@ int readCsvFieldToBigChars(BigChars& chars, int pos, BigChars& dst) {
     if (chars[i] == 0x201D) {
       dst.push_back('"');
     }
+    // \xFF format
+    else if (chars[i] == '\\' && chars[i+1] == 'x') {
+      char ordinal[3];
+      sprintf(ordinal, "%c%c", chars[i+2], chars[i+3]);
+      printf("%s\n", ordinal);
+      dst.push_back((char)std::stoul(ordinal, nullptr, 16));
+      i += 3;
+    }
     else {
       dst.push_back(chars[i]);
     }
