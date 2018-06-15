@@ -31,8 +31,8 @@ int findColorIndex(vector<TColor>& palette, TColor color) {
   }
   
   cerr << "Color not in palette: "
-    << color.r() << "," << color.g() << ","
-    << color.b() << "," << color.a() << endl;
+    << hex << (int)color.r() << "," << hex << (int)color.g() << ","
+    << hex << (int)color.b() << "," << hex << (int)color.a() << endl;
   exit(1);
 }
 
