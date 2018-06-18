@@ -92,6 +92,9 @@ mgl_colorize: blackt $(OBJ)
 	
 mgl_tileimg_build: blackt $(OBJ)
 	$(CXX) $(ODIR)/mgl_tileimg_build.o -o mgl_tileimg_build $(CXXFLAGS)
+	
+mgl_filepatch: blackt $(OBJ)
+	$(CXX) $(ODIR)/mgl_filepatch.o -o mgl_filepatch $(CXXFLAGS)
 
 blackt:
 	$(MAKE) -C blackt
