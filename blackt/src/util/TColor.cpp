@@ -24,7 +24,7 @@ TColor::TColor(const TByte* src)
     g_(src[1]),
     b_(src[0]) { };
     
-bool TColor::operator==(const BlackT::TColor& other) {
+bool TColor::operator==(const BlackT::TColor& other) const {
   if ((r_ == other.r_)
       && (g_ == other.g_)
       && (b_ == other.b_)
@@ -32,7 +32,7 @@ bool TColor::operator==(const BlackT::TColor& other) {
   return false;
 }
 
-bool TColor::operator!=(const BlackT::TColor& other) {
+bool TColor::operator!=(const BlackT::TColor& other) const {
   return !(*this == other);
 }
         
@@ -66,6 +66,24 @@ void TColor::setG(TByte g__) {
 
 void TColor::setB(TByte b__) {
   b_ = b__;
+}
+  
+long int TColor::asInt() const {
+  return ((long int)r_
+                  | ((long int)g_ << 8)
+                  | ((long int)b_ << 16)
+                  | ((long int)a_ << 24));
+}
+
+void TColor::fromInt(long int value) {
+  r_ = (value & 0x000000FF);
+  g_ = (value & 0x0000FF00) >> 8;
+  b_ = (value & 0x00FF0000) >> 16;
+  a_ = (value & 0xFF000000) >> 24;
+}
+  
+bool TColor::operator<(const TColor& other) const {
+  return (asInt() < other.asInt());
 }
 
 

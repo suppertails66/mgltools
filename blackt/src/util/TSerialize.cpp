@@ -31,6 +31,20 @@ int TSerialize::readInt(const TByte* src,
   return result;
 }
 
+
+int TSerialize::readInt(BlackT::TStream& src,
+//              int& byteCount,
+              int sz,
+              EndiannessTypes::EndiannessType end,
+              SignednessTypes::SignednessType sign) {
+  TByte buffer[16];
+  src.read((char*)buffer, sz);
+  
+  return ByteConversion::fromBytes(
+                      buffer, sz,
+                      end, sign);
+}
+
 int TSerialize::readInt(const char* src,
               int& byteCount,
               int sz,
@@ -57,6 +71,17 @@ void TSerialize::writeInt(char* dst,
               SignednessTypes::SignednessType sign) {
   ByteConversion::toBytes(val, dst, sz,
                           end, sign);
+}
+  
+void TSerialize::writeInt(BlackT::TStream& ofs,
+             int val,
+             int sz,
+              EndiannessTypes::EndiannessType end,
+              SignednessTypes::SignednessType sign) {
+  char buffer[16];
+  ByteConversion::toBytes(val, buffer, sz,
+                          end, sign);
+  ofs.write(buffer, sz);
 }
   
 void TSerialize::writeInt(TByte* dst,

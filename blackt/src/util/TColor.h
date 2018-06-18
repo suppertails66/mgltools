@@ -45,12 +45,12 @@ public:
   /**
    * Equality overload.
    */
-  bool operator==(const BlackT::TColor& other);
+  bool operator==(const BlackT::TColor& other) const;
 
   /**
    * Inequality overload.
    */
-  bool operator!=(const BlackT::TColor& other);
+  bool operator!=(const BlackT::TColor& other) const;
   
   /**
    * Array-based constructor.
@@ -107,6 +107,11 @@ public:
    * @param b__ New blue component.
    */
   void setB(TByte b__);
+  
+  long int asInt() const;
+  void fromInt(long int value);
+  
+  bool operator<(const TColor& other) const;
    
 protected:
 

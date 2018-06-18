@@ -45,6 +45,23 @@ TGraphic& TGraphic::operator=(const TGraphic& graphic) {
   return *this;
 }
 
+bool TGraphic::operator==(const TGraphic& graphic) {
+  if (w_ != graphic.w_) return false;
+  if (h_ != graphic.h_) return false;
+  
+  for (int j = 0; j < h_; j++) {
+    for (int i = 0; i < w_; i++) {
+      if (getPixel(i, j) != graphic.getPixel(i, j)) return false;
+    }
+  }
+  
+  return true;
+}
+
+bool TGraphic::operator!=(const TGraphic& graphic) {
+  return !(*this == graphic);
+}
+
 /*TGraphic::TGraphic(const GGTile& tile,
                  const GGPalette& palette,
                  TileTransferTransOption transOption)
@@ -268,9 +285,9 @@ void TGraphic::blitWrap(const TGraphic& src,
                          CopyOrBlitWrapCommand::blitWrapCommand);
 }
 
-TColor TGraphic::getPixel(int xpos, int ypos) {
+TColor TGraphic::getPixel(int xpos, int ypos) const {
 //  return TColor(imgdat(xpos, ypos));
-  TByte* src = imgdat(xpos, ypos);
+  const TByte* src = const_imgdat(xpos, ypos);
   
 #ifdef _WIN32
   return TColor(src[2], src[1], src[0], src[3]);

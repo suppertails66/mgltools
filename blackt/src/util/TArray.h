@@ -86,6 +86,19 @@ public:
   }
   
   void resize(unsigned int size__) {
+    T* newData = new T[size__];
+    
+    // expanding
+    if (size__ > size_) std::memcpy(newData, data_, size_ * sizeof(T));
+    // contracting
+    else std::memcpy(newData, data_, size__ * sizeof(T));
+    
+    destroyData();
+    data_ = newData;
+    size_ = size__;
+  }
+  
+  void resizeAndDestroy(unsigned int size__) {
     destroyData();
     data_ = new T[size__];
     size_ = size__;
@@ -151,7 +164,7 @@ protected:
   void copy(const TArray<T>& t) {
     resize(t.size_);
     
-    for (int i = 0; i < t.size_; i++) {
+    for (unsigned int i = 0; i < t.size_; i++) {
       data_[i] = t.data_[i];
     }
   }

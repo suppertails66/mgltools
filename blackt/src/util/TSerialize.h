@@ -3,6 +3,7 @@
 
 
 #include "util/TByte.h"
+#include "util/TStream.h"
 #include "util/EndiannessType.h"
 #include "util/SignednessType.h"
 #include <string>
@@ -31,6 +32,12 @@ public:
               EndiannessTypes::EndiannessType end = EndiannessTypes::little,
               SignednessTypes::SignednessType sign = SignednessTypes::nosign);
   
+  static int readInt(BlackT::TStream& src,
+//              int& byteCount,
+              int sz = u16size,
+              EndiannessTypes::EndiannessType end = EndiannessTypes::little,
+              SignednessTypes::SignednessType sign = SignednessTypes::nosign);
+  
   static int readInt(const char* src,
               int& byteCount,
               int sz = u16size,
@@ -44,6 +51,12 @@ public:
                SignednessTypes::SignednessType sign = SignednessTypes::nosign);
   
   static void writeInt(char* dst,
+               int val,
+               int sz = u16size,
+               EndiannessTypes::EndiannessType end = EndiannessTypes::little,
+               SignednessTypes::SignednessType sign = SignednessTypes::nosign);
+  
+  static void writeInt(BlackT::TStream& ofs,
                int val,
                int sz = u16size,
                EndiannessTypes::EndiannessType end = EndiannessTypes::little,
