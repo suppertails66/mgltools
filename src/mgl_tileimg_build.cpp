@@ -245,9 +245,21 @@ int main(int argc, char* argv[]) {
   // pad with dummy entries
   switch (encoding) {
   case ImageEncodings::bpp4:
+    if (outputPalette.size() > 0x20) {
+      cerr << "Error: too many colors ("
+        << (outputPalette.size() / 2)
+        << ") for 16-color image" << endl;
+      return 1;
+    }
     while (outputPalette.size() < 0x20) outputPalette.writeu16be(0);
     break;
   case ImageEncodings::bpp8:
+    if (outputPalette.size() > 0x200) {
+      cerr << "Error: too many colors ("
+        << (outputPalette.size() / 2)
+        << ") for 256-color image" << endl;
+      return 1;
+    }
     while (outputPalette.size() < 0x200) outputPalette.writeu16be(0);
     break;
   default:
