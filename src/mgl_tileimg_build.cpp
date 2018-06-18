@@ -120,28 +120,28 @@ void doTile(int tX, int tY) {
   
   // Regular orientation
   if ((tileIndex = findMatchingIndex(tiles, tile)) != -1) {
-    tilemap.data(tX, tY) = (tileIndex);
+    tilemap.data(tX, tY) = ((tileIndex * 2));
     return;
   }
   
   // Flipped in X
   tile.flipHorizontal();
   if ((tileIndex = findMatchingIndex(tilesFlipX, tile)) != -1) {
-    tilemap.data(tX, tY) = (tileIndex | hFlipFlag);
+    tilemap.data(tX, tY) = ((tileIndex * 2) | hFlipFlag);
     return;
   }
   
   // Flipped in XY
   tile.flipVertical();
   if ((tileIndex = findMatchingIndex(tilesFlipXY, tile)) != -1) {
-    tilemap.data(tX, tY) = (tileIndex | hFlipFlag | vFlipFlag);
+    tilemap.data(tX, tY) = ((tileIndex * 2) | hFlipFlag | vFlipFlag);
     return;
   }
   
   // Flipped in Y
   tile.flipHorizontal();
   if ((tileIndex = findMatchingIndex(tilesFlipY, tile)) != -1) {
-    tilemap.data(tX, tY) = (tileIndex | vFlipFlag);
+    tilemap.data(tX, tY) = ((tileIndex * 2) | vFlipFlag);
     return;
   }
   
@@ -158,7 +158,7 @@ void doTile(int tX, int tY) {
   tilesFlipY.push_back(tile);
   
   // Add tilemap entry
-  tilemap.data(tX, tY) = tiles.size() - 1;
+  tilemap.data(tX, tY) = (tiles.size() - 1) * 2;
 }
 
 int main(int argc, char* argv[]) {
@@ -266,6 +266,10 @@ int main(int argc, char* argv[]) {
   
   // tilemap
   int tilemapPos = output.tell();
+  if (!implicitWh) {
+    output.writeu16be(tilemap.w());
+    output.writeu16be(tilemap.h());
+  }
   for (int j = 0; j < tilemap.h(); j++) {
     for (int i = 0; i < tilemap.w(); i++) {
       output.writeu32be(tilemap.data(i, j));
