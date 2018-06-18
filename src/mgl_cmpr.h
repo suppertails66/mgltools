@@ -723,7 +723,7 @@ int writeGraphic4bpp(BlackT::TGraphic& src,
       BlackT::TColor color = src.getPixel(i, j);
       int colorIndex = (color.r() & 0xF0) >> 4;
       
-      if (color.a() == 0) colorIndex = 0;
+      if (color.a() == BlackT::TColor::fullAlphaTransparency) colorIndex = 0;
       
       if (lowNyb) {
         // write to low nybble and advance to next position
@@ -736,6 +736,23 @@ int writeGraphic4bpp(BlackT::TGraphic& src,
       
       // flip parity
       lowNyb = !lowNyb;
+    }
+  }
+  
+  return putpos;
+}
+
+int writeGraphic8bpp(BlackT::TGraphic& src,
+                           unsigned char* dst) {
+  int putpos = 0;                    
+  for (int j = 0; j < src.h(); j++) {
+    for (int i = 0; i < src.w(); i++) {
+      BlackT::TColor color = src.getPixel(i, j);
+      int colorIndex = color.r();
+      
+      if (color.a() == BlackT::TColor::fullAlphaTransparency) colorIndex = 0;
+    
+      dst[putpos++] = colorIndex;
     }
   }
   
