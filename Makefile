@@ -20,7 +20,7 @@ PREFIX := /usr/local
 BINDIR := $(PREFIX)/bin
 INSTALL := install
 
-tools = sjis_srch mgl_strtab_extr mgl_str_insr mgl_str_fmtconv mgl_img_decmp mgl_img_cmp mgl_img_inject mgl_grp_conv mgl_img_extr mgl_img_insr mgl_fieldbod_extr mgl_script_extr mgl_dlog_insr mgl_credits_extr mgl_credits_insr mgl_ascii_extr mgl_ascii_build mgl_tileimg_extr mgl_titleimg_extr mgl_colorize
+tools = sjis_srch mgl_strtab_extr mgl_str_insr mgl_str_fmtconv mgl_img_decmp mgl_img_cmp mgl_img_inject mgl_grp_conv mgl_img_extr mgl_img_insr mgl_fieldbod_extr mgl_script_extr mgl_dlog_insr mgl_credits_extr mgl_credits_insr mgl_ascii_extr mgl_ascii_build mgl_tileimg_extr mgl_titleimg_extr mgl_colorize mgl_tileimg_build mgl_filepatch
 
 all: blackt $(tools)
 
