@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
   memset((char*)decompressedData, 0, decompressionBufferSize);
   int decompressedDataSize = decompressMglImg(
     (unsigned char*)(imgchunk.buffer + compressedDataOffset + 4),
-    compressedDataSize, decompressedData);
+    compressedDataSize + 1, decompressedData);
     
   int tileSize;
   switch (encoding) {
