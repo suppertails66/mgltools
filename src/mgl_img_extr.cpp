@@ -1,4 +1,4 @@
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/ByteConversion.h"
 #include "util/TGraphic.h"
 #include "util/TPngConversion.h"
@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 // Size of the buffer used to decompress the VRAM data
 const int vramDecompressionBufferSize = 0x100000;

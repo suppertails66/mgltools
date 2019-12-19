@@ -1,4 +1,4 @@
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/TGraphic.h"
 #include "util/TPngConversion.h"
 #include "util/TStringConversion.h"
@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {

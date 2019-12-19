@@ -1,5 +1,5 @@
-#include "mgl_transtxt.h"
-#include "csv_utf8.h"
+#include "mgl/mgl_transtxt.h"
+#include "mgl/csv_utf8.h"
 #include "util/ByteConversion.h"
 #include <iostream>
 #include <fstream>
@@ -8,6 +8,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 const static int kanjiLoadAddress = 0x2F2000;
 const static int kanjiFreeSpaceStart = 0x2C48;

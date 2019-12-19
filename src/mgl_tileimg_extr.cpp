@@ -1,4 +1,4 @@
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/ByteConversion.h"
 #include "util/TGraphic.h"
 #include "util/TPngConversion.h"
@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 const static int decompressionBufferSize = 0x100000;
 

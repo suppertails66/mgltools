@@ -1,4 +1,4 @@
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/ByteConversion.h"
 #include "util/TStringConversion.h"
 #include "util/TGraphic.h"
@@ -13,6 +13,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 const static int compressionBufferSize = 0x100000;
 

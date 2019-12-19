@@ -3,12 +3,13 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/TPngConversion.h"
 #include "util/TSerialize.h"
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 char* findarg(int argc, char* argv[], const char* name) {
   for (int i = 0; i < argc - 1; i++) {
