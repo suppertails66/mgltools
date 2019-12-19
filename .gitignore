@@ -3,4 +3,30 @@
 *.obj
 *.lib
 
+obj/
 blackt/obj/
+libsat/obj/
+
+# Executables
+mgl_ascii_build
+mgl_ascii_extr
+mgl_colorize
+mgl_credits_extr
+mgl_credits_insr
+mgl_dlog_insr
+mgl_fieldbod_extr
+mgl_filepatch
+mgl_grp_conv
+mgl_img_cmp
+mgl_img_decmp
+mgl_img_extr
+mgl_img_inject
+mgl_img_insr
+mgl_script_extr
+mgl_str_fmtconv
+mgl_str_insr
+mgl_strtab_extr
+mgl_tileimg_build
+mgl_tileimg_extr
+mgl_titleimg_extr
+sjis_srch
