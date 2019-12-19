@@ -45,6 +45,7 @@ public:
   virtual void alignToBoundary(int byteBoundary);
   virtual void alignToReadBoundary(int byteBoundary);
   virtual void alignToWriteBoundary(int byteBoundary);
+  virtual void padToSize(int sz, char fillChar = 0xFF);
   virtual bool nextIsEof();
   virtual void write(const std::string& str);
   virtual void getLine(std::string& dst);
