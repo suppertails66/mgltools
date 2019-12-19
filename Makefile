@@ -32,8 +32,6 @@ $(LIBSATDIR)/libsat.a: $(LIBSATDIR)/src/**/*.cpp
 	make -C ${LIBSATDIR} all
 
 $(TOOLS): $(SRCDIR)/$$@.cpp $(LIBDEPS) $(BLACKTDIR)/libblackt.a
-	make blackt
-	make libsat
 	$(CXX) $(SRCDIR)/$@.cpp $(OBJ) -o $(notdir $@) $(CXXFLAGS)
 
 .PHONY: cleanme clean
