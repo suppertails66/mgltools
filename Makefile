@@ -26,10 +26,10 @@ TOOLS := $(notdir $(TOOLSINDIR))
 all: $(BLACKTDIR)/libblackt.a $(LIBSATDIR)/libsat.a $(TOOLS)
 
 $(BLACKTDIR)/libblackt.a: $(BLACKTDIR)/src/**/*.cpp
-	cd ${BLACKTDIR} && $(MAKE) && cd $(CURDIR)
+	make -C ${BLACKTDIR} all
 
 $(LIBSATDIR)/libsat.a: $(LIBSATDIR)/src/**/*.cpp
-	cd ${LIBSATDIR} && $(MAKE) && cd $(CURDIR)
+	make -C ${LIBSATDIR} all
 
 $(TOOLS): $(SRCDIR)/$$@.cpp $(LIBDEPS) $(BLACKTDIR)/libblackt.a
 	make blackt
@@ -44,5 +44,5 @@ cleanme:
 clean: cleanme
 #	rm -f $(LIB)
 #	rm -rf $(ODIR)
-	cd ${BLACKTDIR} && $(MAKE) clean && cd $(CURDIR)
-	cd ${LIBSATDIR} && $(MAKE) clean && cd $(CURDIR)
+	make -C ${BLACKTDIR} clean
+	make -C ${LIBSATDIR} clean
