@@ -102,6 +102,12 @@ void TStream::alignToWriteBoundary(int byteBoundary) {
   alignToBoundary(byteBoundary);
 }
 
+void TStream::padToSize(int sz, char fillChar) {
+  while (size() < sz) {
+    put(fillChar);
+  }
+}
+
 bool TStream::nextIsEof() {
   get();
   bool result = eof();

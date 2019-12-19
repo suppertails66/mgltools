@@ -45,6 +45,8 @@ char TBufStream::peek() {
 }
 
 void TBufStream::put(char c) {
+  recapIfNeeded(endPos_ + 1);
+  
   data_[pos_++] = c;
   
   updateEndPos();
@@ -56,6 +58,8 @@ void TBufStream::read(char* dst, int size) {
 }
 
 void TBufStream::write(const char* src, int size) {
+  recapIfNeeded(endPos_ + size);
+  
   std::memcpy(data_.data() + pos_, src, size);
   pos_ += size;
   
@@ -88,6 +92,8 @@ int TBufStream::tell() {
 
 void TBufStream::seek(int pos) {
   pos_ = pos;
+  
+  updateEndPos();
 }
 
 int TBufStream::size() {
@@ -112,8 +118,21 @@ int TBufStream::size() const {
 int TBufStream::capacity() const {
   return data_.size();
 }
+
+void TBufStream::setCapacity(int capacity__) {
+  int sizeDiff = capacity__ - data_.size();
+  
+  // ignore requests to lower capacity
+  if (sizeDiff > 0) {
+    data_.resize(capacity__);
+    // if new cap greater than old, zero new data
+    std::memset(data_.data() + data_.size() - sizeDiff, 0, sizeDiff);
+  }
+}
   
 void TBufStream::writeFrom(TStream& ifs, int sz) {
+  recapIfNeeded(endPos_ + sz);
+  
   ifs.read((char*)(data_.data() + pos_), sz);
   pos_ += sz;
   
@@ -146,6 +165,10 @@ const TArray<char>& TBufStream::data() const {
 
 void TBufStream::updateEndPos() {
   if (pos_ > endPos_) endPos_ = pos_;
+}
+
+void TBufStream::recapIfNeeded(int targetAmount) {
+  if (targetAmount > capacity()) setCapacity(targetAmount * 2);
 }
 
 

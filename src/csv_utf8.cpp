@@ -1,4 +1,5 @@
 #include "csv_utf8.h"
+#include <iostream>
 
 int filesize(std::istream& ifs) {
   int old = ifs.tellg();
@@ -53,13 +54,31 @@ void bigCharsToString(BigChars& chars, std::string& dst) {
 }
 
 int readCsvFieldToBigChars(BigChars& chars, int pos, BigChars& dst) {
+  // special case: empty final cell
+  // FIXME: final cell will not actually be added if empty
+  if (pos >= chars.size()) return chars.size();
+
   int endpos;
   bool isEscaped = false;
   // if cell is escaped, search for quotation mark delimiter
   if (chars[pos] == '"') {
     isEscaped = true;
     ++pos;
-    endpos = findDelimiter(chars, pos, "\"");
+    
+    endpos = pos;
+    while (true) {
+      endpos = findDelimiter(chars, endpos, "\"");
+      
+      if (endpos >= chars.size() - 1) break;
+      
+      // the cell text may itself contain quotes, which are escaped as a
+      // sequence of two quotes: ""
+      // ignore these quote literals
+      if (chars[endpos + 1] != '"') break;
+      
+      // literal quote: skip both and search for delimiter again
+      endpos += 2;
+    }
   }
   // otherwise, search for comma or newline
   else {
@@ -80,6 +99,14 @@ int readCsvFieldToBigChars(BigChars& chars, int pos, BigChars& dst) {
       dst.push_back((char)std::stoul(ordinal, nullptr, 16));
       i += 3;
     }
+    // check for "" = quote literal in escaped content
+    else if (isEscaped
+            && (i <= (endpos - 2))
+            && (chars[i] == '"')
+            && (chars[i + 1] == '"')) {
+      dst.push_back('"');
+      ++i;
+    }
     else {
       dst.push_back(chars[i]);
     }
@@ -88,6 +115,7 @@ int readCsvFieldToBigChars(BigChars& chars, int pos, BigChars& dst) {
   // if cell is escaped, skip end quote
   if (isEscaped) ++endpos;
   
+  // skip past comma in returned value
   return endpos + 1;
 }
 
@@ -106,8 +134,8 @@ int readCsvRow(BigChars& chars, int pos, std::vector<BigChars>& dst) {
     secondRowStart = readCsvFieldToBigChars(chars,
                                             secondRowStart,
                                             dst[dst.size() - 1]);
-    
-  } while (chars[secondRowStart - 1] != '\n');
+  } while ((secondRowStart < chars.size())
+           && (chars[secondRowStart - 1] != '\n'));
   
   return secondRowStart;
 }
@@ -126,9 +154,13 @@ void readCsvUtf8(std::istream& ifs,
   utf8::utf8to16(rawString.begin(), rawString.end(), back_inserter(csv16));
 
   int pos = 0;
+//  int num = 0;
   do {
+//    std::cerr << "num: " << std::dec << num++ << std::endl;
+//    std::cerr << "start: " << std::hex << pos*2 << std::endl;
     dst.push_back(std::vector<BigChars>());
     pos = readCsvRow(csv16, pos, dst[dst.size() - 1]);
+//    std::cerr << "end: " << std::hex << pos*2 << std::endl;
   } while (pos < csv16.size());
 
 /*  std::vector<BigChars> firstRow;

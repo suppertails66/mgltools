@@ -11,7 +11,13 @@ namespace BlackT {
 
 class TBufStream : public TStream {
 public:
-  TBufStream(int sz);
+  // sz = initial buffer capacity.
+  // after multiple years of having to set this explicitly, i finally
+  // added the necessary 10 lines of code to not have to deal with it!
+  // wonderful!!
+  // but since it's now set explicitly in hundreds of places, we're stuck with
+  // this parameter.
+  TBufStream(int sz = 8);
   virtual ~TBufStream();
   
   virtual void open(const char* filename);
@@ -38,6 +44,7 @@ public:
   // of size()
   virtual int size() const;
   virtual int capacity() const;
+  virtual void setCapacity(int capacity__);
   virtual void writeFrom(TStream& ifs, int sz);
   virtual void writeTo(TStream& ofs, int sz);
   virtual void fromString(const std::string& str);
@@ -48,6 +55,12 @@ public:
   
 protected:
   virtual void updateEndPos();
+  
+  /**
+   * Check if we have enough room for the given amount of data, and expand
+   * capcity if not.
+   */
+  virtual void recapIfNeeded(int targetAmount);
 
   TArray<char> data_;
   int pos_;
