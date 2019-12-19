@@ -1,4 +1,4 @@
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/ByteConversion.h"
 #include "util/TStringConversion.h"
 #include "util/TPngConversion.h"
@@ -10,6 +10,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 // Size of the buffer used to convert !all! of the source images to
 // a data block

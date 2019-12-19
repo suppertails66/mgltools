@@ -1,4 +1,4 @@
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/ByteConversion.h"
 #include "util/TArray.h"
 #include "util/TSerialize.h"
@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 const static int indexSize = 0x800;
 

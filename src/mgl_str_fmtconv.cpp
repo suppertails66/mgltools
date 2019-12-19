@@ -1,9 +1,10 @@
-#include "mgl_transtxt.h"
+#include "mgl/mgl_transtxt.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 
 using namespace std;
+using namespace Sat;
 
 int main(int argc, char* argv[]) {
 

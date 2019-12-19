@@ -2,17 +2,19 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "utf8.h"
-#include "csv_utf8.h"
-#include "mgl_cmpr.h"
+#include "util/utf8.h"
+#include "mgl/csv_utf8.h"
+#include "mgl/mgl_cmpr.h"
 #include "util/TStringConversion.h"
 #include "util/ByteConversion.h"
 #include "util/TStream.h"
 #include "util/TBufStream.h"
+#include "util/TFileManip.h"
 #include "exception/TGenericException.h"
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 typedef vector<short int> BigChars;
 
@@ -264,7 +266,7 @@ int main(int argc, char* argv[]) {
   
   // Initialize the kanjitxt if it doesn't exist
   ifs.open(kanjitxt);
-  int kanjitxtSz = fsize(ifs);
+  int kanjitxtSz = TFileManip::getFileSize(ifs);
   ifs.close();
   if (kanjitxtSz <= 0) {
     ofstream ofs(kanjitxt);
@@ -306,7 +308,7 @@ int main(int argc, char* argv[]) {
   
   // Read the input FLD
   ifs.open(infile, ios_base::binary);
-  int infileSz = fsize(ifs);
+  int infileSz = TFileManip::getFileSize(ifs);
   buffer = new char[infileSz];
   ifs.read(buffer, infileSz);
   ifs.close();
@@ -349,7 +351,7 @@ int main(int argc, char* argv[]) {
     
     // Compute actual size of chunk (accounting for sector-boundary padding)
     int realChunkSize = ((chunkSize / sectorSize) * sectorSize);
-    if (chunksize % sectorSize != 0) realChunkSize += sectorSize;
+    if (chunkSize % sectorSize != 0) realChunkSize += sectorSize;
     
     std::cout << "Adding strings from chunk " << chunknum << std::endl;
     

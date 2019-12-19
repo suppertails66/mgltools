@@ -1,10 +1,11 @@
-#include "mgl_cmpr.h"
+#include "mgl/mgl_cmpr.h"
 #include <iostream>
 #include <fstream>
 #include <cstring>
 #include <cstdlib>
 
 using namespace std;
+using namespace Sat;
 
 // maximum size of compressed data -- don't exceed this
 const static int outputBufferSize = 0x100000;

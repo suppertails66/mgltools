@@ -1,4 +1,4 @@
-#include "mgl_transtxt.h"
+#include "mgl/mgl_transtxt.h"
 #include "util/TStringConversion.h"
 #include "util/TSerialize.h"
 #include "util/ByteConversion.h"
@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace BlackT;
+using namespace Sat;
 
 void readMglString(istream& ifs, string& dst) {
   unsigned int next = (unsigned char)(ifs.get());
