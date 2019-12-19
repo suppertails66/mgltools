@@ -23,20 +23,20 @@ TOOLS := $(notdir $(TOOLSINDIR))
 
 .SECONDEXPANSION:
 
-all: blackt libsat $(TOOLS)
+all: $(BLACKTDIR)/libblackt.a $(LIBSATDIR)/libsat.a $(TOOLS)
 
-blackt:
+$(BLACKTDIR)/libblackt.a: $(BLACKTDIR)/src/**/*.cpp
 	cd ${BLACKTDIR} && $(MAKE) && cd $(CURDIR)
 
-libsat:
+$(LIBSATDIR)/libsat.a: $(LIBSATDIR)/src/**/*.cpp
 	cd ${LIBSATDIR} && $(MAKE) && cd $(CURDIR)
 
-$(TOOLS): $(SRCDIR)/$$@.cpp $(LIBDEPS)
+$(TOOLS): $(SRCDIR)/$$@.cpp $(LIBDEPS) $(BLACKTDIR)/libblackt.a
 	make blackt
 	make libsat
 	$(CXX) $(SRCDIR)/$@.cpp $(OBJ) -o $(notdir $@) $(CXXFLAGS)
 
-.PHONY: blackt libsat cleanme clean
+.PHONY: cleanme clean
 
 cleanme:
 	rm -f $(TOOLS)
