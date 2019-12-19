@@ -19,7 +19,7 @@ OBJ := $(patsubst $(SRCDIR)/%,$(ODIR)/%,$(patsubst %.cpp,%.o,$(SRC)))
 DEP := $(patsubst %.o,%.d,$(OBJ))
 LIB := libsat.a
 
-all: blackt $(LIB)
+all: $(BLACKTDIR)/libblackt.a $(LIB)
 
 -include $(DEP)
 
@@ -30,7 +30,7 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp
 $(LIB): $(OBJ)
 	$(AR) rcs $@ $^
 
-blackt:
+$(BLACKTDIR)/libblackt.a:
 	make -C ../blackt
 
 .PHONY: blackt clean
