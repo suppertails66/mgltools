@@ -348,7 +348,8 @@ int main(int argc, char* argv[]) {
       EndiannessTypes::big, SignednessTypes::nosign);
     
     // Compute actual size of chunk (accounting for sector-boundary padding)
-    int realChunkSize = ((chunkSize / sectorSize) * sectorSize) + sectorSize;
+    int realChunkSize = ((chunkSize / sectorSize) * sectorSize);
+    if (chunksize % sectorSize != 0) realChunkSize += sectorSize;
     
     std::cout << "Adding strings from chunk " << chunknum << std::endl;
     
