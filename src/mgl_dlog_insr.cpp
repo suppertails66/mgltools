@@ -294,6 +294,7 @@ void updateChunk(BlackT::TArray<TByte>& rawChunkData,
   
   // append the append chunk to the old chunk
   ofs.seek(ofs.size());
+  appendOfs.seek(0);
   ofs.writeFrom(appendOfs, appendOfs.size());
   
   // convert updated stream back to raw data
@@ -507,22 +508,8 @@ int main(int argc, char* argv[]) {
                                 + TStringConversion::intToString(chunknum));
     }
     
-    // Look up chunk address from index
-/*    int indexAddr = chunknum * chunkIndexEntrySize;
-    int chunkAddr = ByteConversion::fromBytes(buffer + indexAddr + 0, 4,
-      EndiannessTypes::big, SignednessTypes::nosign);
-    int chunkSize = ByteConversion::fromBytes(buffer + indexAddr + 4, 4,
-      EndiannessTypes::big, SignednessTypes::nosign);
-    
-    // Compute actual size of chunk (accounting for sector-boundary padding)
-    int realChunkSize = ((chunkSize / sectorSize) * sectorSize);
-    if (chunkSize % sectorSize != 0) realChunkSize += sectorSize; */
-    
     std::cout << "Adding strings from chunk " << chunknum << std::endl;
     
-//    updateChunk(buffer + chunkAddr, realChunkSize,
-//                transEntries, startIndex, endIndex,
-//                kanjiBuf);
     updateChunk(fld.chunk(chunknum),
                 transEntries, startIndex, endIndex,
                 kanjiBuf);
@@ -532,10 +519,6 @@ int main(int argc, char* argv[]) {
   }
   
   // Write the modified FLD
-/*  ofstream ofs(outfile, ios_base::binary);
-  ofs.write(buffer, infileSz);
-  ofs.close();
-  delete buffer; */
   {
     TBufStream ofs;
     fld.write(ofs);
@@ -552,5 +535,5 @@ int main(int argc, char* argv[]) {
     ofs.close();
   }
   
-  return 0;
+  return 1;
 }
