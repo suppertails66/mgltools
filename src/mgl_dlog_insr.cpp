@@ -118,19 +118,25 @@ char readNextChar(string& chars, int& pos) {
     }
   }
   // newline: check if a literal newline or a wait-for-input command
-  else if (chars[pos] == '\n') {
+  else if ((chars[pos] == '\r') || (chars[pos] == '\n')) {
+    // HACK (but probably will work fine): assume if we see a \r, this is
+    // the start of a series of windows-style linebreaks
+    bool windowsStyleBr = (chars[pos] == '\r');
+    
     int newlines = countConsecutiveNewlines(chars, pos);
     
 //    cout << newlines << endl;
     
     // 2+ newlines: wait-for-input
     if (newlines >= 2) {
-      pos += 2;
+      if (windowsStyleBr) pos += 4;
+      else pos += 2;
       return opcodeWaitForInput;
     }
     // 1 newline: literal
     else {
-      ++pos;
+      if (windowsStyleBr) pos += 2;
+      else ++pos;
       return '\n';
     }
   }
@@ -163,6 +169,34 @@ std::string formatRawString(std::string input) {
     
     // add to message
     result += nextchar;
+    
+    // HACK: assume that if we encounter a "wait" command, we
+    // will always clear the box afterward.
+    // i originally intended for this to be tracked explicitly in the
+    // script file, with two consecutive linebreaks performing a "wait"
+    // but not moving to the next line when the text continues.
+    // but no one in their right mind wants to keep
+    // track of two vs. three linebreaks having a semantic difference.
+    // if this actually turns out to matter, we can find a workaround.
+    if ((nextchar == opcodeWaitForInput)
+        && (getpos < input.size())) {
+      // skip over any trailing linebreaks
+      while ((getpos < input.size())
+              && ((input[getpos] == '\r')
+                  || (input[getpos] == '\n'))) ++getpos;
+      
+      if (getpos < input.size()) {
+        // peek at next character
+        int oldpos = getpos;
+        nextchar = readNextChar(input, getpos);
+        getpos = oldpos;
+        
+        // if not a clear command, add a linebreak
+        if (nextchar != opcodeClearBox) {
+          result += '\n';
+        }
+      }
+    }
   }
   
   // add final wait-for-button command, unless nowait is on
