@@ -94,6 +94,12 @@ namespace Sat {
       if (chars[i] == 0x201D) {
         dst.push_back('"');
       }
+      // UTF-8 ellipsis
+      else if (chars[i] == 0x2026) {
+        dst.push_back('.');
+        dst.push_back('.');
+        dst.push_back('.');
+      }
       // \xFF format
       else if (chars[i] == '\\' && chars[i+1] == 'x') {
         char ordinal[3];
