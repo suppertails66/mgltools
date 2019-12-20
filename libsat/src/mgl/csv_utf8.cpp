@@ -101,7 +101,9 @@ namespace Sat {
         dst.push_back('.');
       }
       // \xFF format
-      else if (chars[i] == '\\' && chars[i+1] == 'x') {
+      else if ((i <= endpos - 4)
+               && (chars[i] == '\\')
+               && (chars[i+1] == 'x')) {
         char ordinal[3];
         sprintf(ordinal, "%c%c", chars[i+2], chars[i+3]);
         printf("%s\n", ordinal);
