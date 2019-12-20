@@ -5,6 +5,7 @@
 #include "util/ByteConversion.h"
 #include "util/TArray.h"
 #include "util/TSerialize.h"
+#include "util/TStream.h"
 #include "mgl/MglScriptHeader.h"
 #include <iostream>
 #include <fstream>
@@ -25,6 +26,7 @@ namespace Sat {
     std::vector<int> dialogueOffsets;
     
     void read(unsigned char* src, int srcsize);
+//    void write(BlackT::TStream& ofs) const;
   protected:
     static bool morePrintableContentExists(unsigned char* str);
   };

@@ -5,6 +5,11 @@ using namespace BlackT;
 namespace Sat {
 
   void ScriptChunk::read(unsigned char* src, int srcsize) {
+    unknown1 = ByteConversion::fromBytes(src + 0, 2,
+      EndiannessTypes::big, SignednessTypes::nosign);
+    unknown2 = ByteConversion::fromBytes(src + 2, 2,
+      EndiannessTypes::big, SignednessTypes::nosign);
+  
     int scriptInfoOffset = ByteConversion::fromBytes(src + 4, 4,
       EndiannessTypes::big, SignednessTypes::nosign);
     
@@ -135,6 +140,10 @@ namespace Sat {
       dialogues.push_back(dialogue);
     }
   }
+  
+//  void ScriptChunk::write(BlackT::TStream& ofs) const {
+//    
+//  }
   
   bool ScriptChunk::morePrintableContentExists(unsigned char* str) {
     while (true) {

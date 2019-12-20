@@ -22,13 +22,15 @@ namespace Sat {
     
     FldFile();
     
+    int numChunks() const;
+    BlackT::TArray<BlackT::TByte>& chunk(int index);
+    const BlackT::TArray<BlackT::TByte>& chunk(int index) const;
     void read(BlackT::TStream& ifs);
     void write(BlackT::TStream& ifs) const;
   protected:
     const static int indexChunkSize = 0x800;
     const static int chunkIdSize = 0x8;
     const static int maxChunks = indexChunkSize / chunkIdSize;
-        
   };
 
 

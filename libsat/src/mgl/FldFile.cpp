@@ -10,6 +10,18 @@ namespace Sat {
   
   FldFile::FldFile() { }
   
+  int FldFile::numChunks() const {
+    return chunks.size();
+  }
+  
+  BlackT::TArray<BlackT::TByte>& FldFile::chunk(int index) {
+    return chunks.at(index);
+  }
+  
+  const BlackT::TArray<BlackT::TByte>& FldFile::chunk(int index) const {
+    return chunks.at(index);
+  }
+  
   void FldFile::read(BlackT::TStream& ifs) {
     int baseFldPos = ifs.tell();
     int ifsEnd = ifs.size();
