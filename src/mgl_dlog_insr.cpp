@@ -5,9 +5,12 @@
 #include "util/utf8.h"
 #include "mgl/csv_utf8.h"
 #include "mgl/mgl_cmpr.h"
+#include "mgl/FldFile.h"
+#include "mgl/ScriptChunk.h"
 #include "util/TStringConversion.h"
 #include "util/ByteConversion.h"
-#include "util/TStream.h"
+#include "util/TIfstream.h"
+#include "util/TOfstream.h"
 #include "util/TBufStream.h"
 #include "util/TFileManip.h"
 #include "exception/TGenericException.h"
@@ -17,6 +20,10 @@ using namespace BlackT;
 using namespace Sat;
 
 typedef vector<short int> BigChars;
+
+// TODO: remove KANJI.FNT-related stuff.
+// we no longer use it and probably won't need it.
+// keeping it around just in case.
 
 // Offset at which to start placing data in KANJI.FNT
 const static int kanjiStartingPos = 0x4800;
@@ -31,15 +38,13 @@ const static unsigned int sxxLoadAddr = 0x06010000;
 
 const static int sectorSize = 0x800;
 
+const static int maxKanjidatSz = 0xE000;
+
 // Text printing opcodes
 const static char opcodeTerminateMessage  = 0x00;
 const static char opcodeWaitForInput      = 0x08;
 const static char opcodeClearBox          = 0x0C;
 const static char opcodePausePrinting     = 0x0D;
-
-int chunkIndexEntrySize = 8;
-
-const static int maxKanjidatSz = 0xE000;
 
 struct TransFileEntry {
   int chunk;
@@ -61,27 +66,33 @@ struct TransFileEntry {
     offset = TStringConversion::stringToInt(offsetstr);
     
     // field 3: character
-//    readCsvFieldToBigChars(csv16[2], 0, character);
     character = csv16[2];
     
     // field 4: expression
-//    readCsvFieldToBigChars(csv16[3], 0, expression);
     expression = csv16[3];
     
     // field 5: japanese
-//    readCsvFieldToBigChars(csv16[4], 0, japanese);
     japanese = csv16[4];
     
     // field 6: english
-//    readCsvFieldToBigChars(csv16[5], 0, english);
     english = csv16[5];
   }
 };
 
 int countConsecutiveNewlines(string& chars, int pos) {
-  int endpos = pos;
-  while ((endpos < chars.size()) && (chars[endpos++] == '\n'));
-  return (endpos - pos) - 1;
+  int count = 0;
+  
+  while (pos < chars.size()) {
+    // screen for windows-style line \r\n breaks
+    if ((pos <= (chars.size() - 2))
+        && (chars[pos] == '\r')) ++pos;
+    
+    if (chars[pos++] != '\n') break;
+    
+    ++count;
+  }
+  
+  return count;
 }
 
 char readNextChar(string& chars, int& pos) {
@@ -105,19 +116,23 @@ char readNextChar(string& chars, int& pos) {
     }
   }
   // newline: check if a literal newline or a wait-for-input command
-  else if (chars[pos] == '\n') {
-    int newlines = countConsecutiveNewlines(chars, pos);
+  else if ((chars[pos] == '\r') || (chars[pos] == '\n')) {
+    // HACK (but probably will work fine): assume if we see a \r, this is
+    // the start of a series of windows-style linebreaks
+    bool windowsStyleBr = (chars[pos] == '\r');
     
-//    cout << newlines << endl;
+    int newlines = countConsecutiveNewlines(chars, pos);
     
     // 2+ newlines: wait-for-input
     if (newlines >= 2) {
-      pos += 2;
+      if (windowsStyleBr) pos += 4;
+      else pos += 2;
       return opcodeWaitForInput;
     }
     // 1 newline: literal
     else {
-      ++pos;
+      if (windowsStyleBr) pos += 2;
+      else ++pos;
       return '\n';
     }
   }
@@ -132,117 +147,199 @@ char readNextChar(string& chars, int& pos) {
   }
 }
 
-void updateChunk(char* buffer, int realChunkSize,
+std::string formatRawString(std::string input) {
+  std::string result;
+  
+  int getpos = 0;
+  bool nowait = false;
+  while (getpos < input.size()) {
+    // read next character (accounting for control codes, etc.)
+    char nextchar = readNextChar(input, getpos);
+    
+    // early terminator = stop!
+    // terminator will be added below
+    if (nextchar == opcodeTerminateMessage) {
+      nowait = true;
+      break;
+    }
+    
+    // add to message
+    result += nextchar;
+    
+    // HACK: assume that if we encounter a "wait" command, we
+    // will always clear the box afterward.
+    // i originally intended for this to be tracked explicitly in the
+    // script file, with two consecutive linebreaks performing a "wait"
+    // but not moving to the next line when the text continues.
+    // but no one in their right mind wants to keep
+    // track of two vs. three linebreaks having a semantic difference.
+    // if this actually turns out to matter, we can find a workaround.
+    if ((nextchar == opcodeWaitForInput)
+        && (getpos < input.size())) {
+      // skip over any trailing linebreaks
+      while ((getpos < input.size())
+              && ((input[getpos] == '\r')
+                  || (input[getpos] == '\n'))) ++getpos;
+      
+      if (getpos < input.size()) {
+        // peek at next character
+        int oldpos = getpos;
+        nextchar = readNextChar(input, getpos);
+        getpos = oldpos;
+        
+        // if not a clear command, add a linebreak
+        if (nextchar != opcodeClearBox) {
+          result += '\n';
+        }
+      }
+    }
+  }
+  
+  // add final wait-for-button command, unless nowait is on
+  if (!nowait) {
+    result += opcodeWaitForInput;
+  }
+  
+  // add terminator
+  result += opcodeTerminateMessage;
+  
+  return result;
+}
+
+void updateChunk(BlackT::TArray<TByte>& rawChunkData,
                  vector<TransFileEntry>& transFileEntries,
                  int startIndex, int endIndex,
-//                 char* kanjiBuffer, int& kanjiPos) {
                  TStream& kanjiBuffer) {
-  // Get offset of the dialogue offset table
-  int scriptchunkOffset = ByteConversion::fromBytes(buffer + 4, 4,
-      EndiannessTypes::big, SignednessTypes::nosign);
-  int dialogueOffsetTableOffset = ByteConversion::fromBytes(
-      buffer + scriptchunkOffset + 4, 4,
-      EndiannessTypes::big, SignednessTypes::nosign);
+  // do nothing if no strings
+  if (transFileEntries.size() == 0) return;
   
-  // Start inserting dialogue at the offset of the first piece of dialogue
-  int putpos = transFileEntries[startIndex].offset;
-  for (int i = startIndex; i < endIndex; i++) {
-//    std::cout << "Processing script file row " << i + 1 << std::endl;
+  //============================================
+  // set up using info from old chunk
+  //============================================
+  
+  // size of old chunk
+  int oldChunkSize = rawChunkData.size();
+
+  // convert raw chunk to a TBufStream for editing
+  TBufStream ofs;
+  for (unsigned int i = 0; i < rawChunkData.size(); i++)
+    ofs.put(rawChunkData[i]);
+  
+  // get offset of the dialogue offset table
+  ofs.seek(4);
+  int scriptchunkPos = ofs.readu32be();
+  ofs.seek(scriptchunkPos + 4);
+  int dialogueOffsetTablePos = ofs.readu32be();
+  
+  // initial putpos = first dialogue in chunk
+  int oldDialogueChunkStartPos = transFileEntries[startIndex].offset;
+  // final putpos = start of last dialogue in chunk.
+  // NOTE: this is incorrect; we actually need the location of the
+  // *end* of this string, not the start.
+  // but i didn't save that information in the dumped CSVs, and we're
+  // generally only losing a few bytes that we shouldn't need anyway,
+  // so i'm not going to go too crazy over it.
+  int oldDialogueChunkEndPos = transFileEntries[endIndex - 1].offset;
+  
+  //============================================
+  // replace old dialogue strings with new
+  //============================================
+  
+  // stream to hold new dialogue that will be appended after chunk
+  TBufStream appendOfs;
+  int putpos = oldDialogueChunkStartPos;
+  
+  for (unsigned int i = startIndex; i < endIndex; i++) {
+    // index number of string within this chunk
+    int dialogueIndex = i - startIndex; 
+    
+    // position of the string offset for this entry
+    int stringOffsetPos = dialogueOffsetTablePos + (dialogueIndex * 4);
+    
+    //============================================
+    // create the english string
+    //============================================
     
     TransFileEntry& entry = transFileEntries[i];
     
-    // offset of zero == something went wrong with reading
-    if (entry.offset == 0) continue;
+    // illegal offset == something went wrong with reading
+    if (entry.offset <= 0) {
+      throw TGenericException(T_SRCANDLINE,
+                              "updateChunk()",
+                              std::string("Illegal offset ("
+                                + TStringConversion::intToString(entry.offset)
+                                + ") on row ")
+                                + TStringConversion::intToString(i));
+    }
     
-    // Offset of the offset to update for this entry
-    int textOffsetOffset = dialogueOffsetTableOffset + ((i - startIndex) * 4);
-    
+    // get english string
     string englishString;
     bigCharsToString(entry.english, englishString);
     
-    string formattedString;
+    // reformat english string for display
+    string formattedString = formatRawString(englishString);
     
-    int getpos = 0;
-    bool nowait = false;
-    while (getpos < englishString.size()) {
-      // read next character (accounting for control codes, etc.)
-      char nextchar = readNextChar(englishString, getpos);
-      
-      // early terminator = stop!
-      // terminator will be added below
-      if (nextchar == opcodeTerminateMessage) {
-        nowait = true;
-        break;
-      }
-      
-      // add to message
-      formattedString += nextchar;
-    }
+    //============================================
+    // find a place to put the new string
+    //============================================
     
-    // add final wait-for-button command, unless nowait is on
-    if (!nowait) {
-      formattedString += opcodeWaitForInput;
-    }
-    
-    // add terminator
-    formattedString += opcodeTerminateMessage;
-    
-//    cout << dec << entry.chunk << " " << hex << entry.offset << endl;
-//    cout << dec;
-    
-    // if there's enough room, insert into original file
-    if (putpos + formattedString.size() <= realChunkSize) {
-//      cout << hex << textOffsetOffset << endl;
-//      cout << dec;
-      
+    // if there's room, place string into the old chunk
+    if (putpos + formattedString.size() <= oldDialogueChunkEndPos) {
 //      cout << "Placing in old chunk, " << hex << putpos
 //        << ": " << englishString << endl;
 //      cout << dec;
+
+      // update string offset to target its new position
+      ofs.seek(stringOffsetPos);
+      ofs.writeu32be(putpos);
+    
+      // write string data to new position
+      ofs.seek(putpos);
+      ofs.write(formattedString.c_str(), formattedString.size());
       
-      ByteConversion::toBytes(putpos, buffer + textOffsetOffset, 4,
-        EndiannessTypes::big, SignednessTypes::nosign);
-      for (int i = 0; i < formattedString.size(); i++) {
-        buffer[putpos++] = formattedString[i];
-      }
+      // move to next position in dialogue chunk
+      putpos += formattedString.size();
     }
-    // otherwise, insert into KANJI.FNT
+    // otherwise, put it in the append chunk
     else {
-      cout << "Relocating to KANJI.FNT, " << hex << kanjiBuffer.tell()
-        << ": " << englishString << endl;
-      cout << dec;
+//      cout << "Relocating to append chunk, " << hex << appendOfs.tell()
+//        << ": " << englishString << endl;
+//      cout << dec;
       
-      if ((kanjiBuffer.tell() + formattedString.size()) > maxKanjidatSz) {
-        throw TGenericException(T_SRCANDLINE,
-                                "void updateChunk()",
-                                "Out of space in KANJI.FNT");
-      }
-    
-      // The game converts the chunk-local offsets into physical addresses
-      // at runtime by adding the address to which the chunk is loaded
-      // (0x06010000) to the offset. We need to change the offset in such a
-      // way that when this conversion is performed, the resulting address
-      // will instead point to the string's new position in KANJI.FNT, which
-      // is loaded to 0x002F2000. Therefore:
-      long int target = (long)kanjiLoadAddr + (long)kanjiBuffer.tell();
-      target -= (long)sxxLoadAddr;
-      // add range of 32-bit int
-      target += (long)0x100000000;
+      // write offset
+      ofs.seek(stringOffsetPos);
+      // append chunk goes after the entire rest of the old chunk,
+      // so we include that in the offset calculation
+      ofs.writeu32be(oldChunkSize + appendOfs.tell());
       
-      ByteConversion::toBytes(target, buffer + textOffsetOffset, 4,
-        EndiannessTypes::big, SignednessTypes::nosign);
-      for (int i = 0; i < formattedString.size(); i++) {
-//        kanjiBuffer[kanjiPos++] = formattedString[i];
-        kanjiBuffer.put(formattedString[i]);
-      }
+      // write string data
+      appendOfs.write(formattedString.c_str(), formattedString.size());
     }
-    
-//    cout << formattedString << endl;
   }
   
-//  std::cerr << putpos << " " << realChunkSize << std::endl;
+  //============================================
+  // finalize and write new data
+  //============================================
   
-  std::cerr << "Used " << putpos << " bytes in chunk out of "
-    << realChunkSize << " available" << std::endl;
+  // append the append chunk to the old chunk
+  ofs.seek(ofs.size());
+  appendOfs.seek(0);
+  ofs.writeFrom(appendOfs, appendOfs.size());
+  
+  // convert updated stream back to raw data
+  rawChunkData.resize(ofs.size());
+  ofs.seek(0);
+  for (unsigned int i = 0; i < rawChunkData.size(); i++)
+    rawChunkData[i] = (TByte)ofs.get();
+  
+  std::cout << "  Done: used "
+    << putpos - oldDialogueChunkStartPos
+    << " bytes in old chunk out of "
+    << oldDialogueChunkEndPos - oldDialogueChunkStartPos
+    << " available, and placed "
+    << appendOfs.size()
+    << " bytes in the append chunk"
+    << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -273,20 +370,7 @@ int main(int argc, char* argv[]) {
     ofs << kanjiStartingPos;
   }
   
-  char* buffer;
-/*
-  // Read the entire UTF-8-encoded CSV file into memory
-  ifs.open(csvfile);
-  int sz = fsize(ifs);
-  buffer = new char[sz];
-  ifs.read(buffer, sz);
-  ifs.close();
-  string rawString(buffer, sz);
-  delete buffer; */
-  
-  // Convert the content to UTF-16
-//  BigChars csv16;
-//  utf8::utf8to16(rawString.begin(), rawString.end(), back_inserter(csv16));
+  // Read in the input CSV, converting the content to UTF-16
   vector< vector<BigChars> > csv16;
   {
     ifs.open(csvfile);
@@ -294,31 +378,20 @@ int main(int argc, char* argv[]) {
     ifs.close();
   }
   
-  // Skip header row
-//  int pos = findDelimiter(csv16, 0, "\n") + 1;
-  
   // Read each row
   vector<TransFileEntry> transEntries;
   for (int i = 1; i < csv16.size(); i++) {
-//    std::cerr << i << std::endl;
     TransFileEntry entry;
     entry.read(csv16[i]);
     transEntries.push_back(entry);
   }
   
   // Read the input FLD
-  ifs.open(infile, ios_base::binary);
-  int infileSz = TFileManip::getFileSize(ifs);
-  buffer = new char[infileSz];
-  ifs.read(buffer, infileSz);
-  ifs.close();
-  
-  // Read the input kanjidat
-/*  ifs.open(kanjidat, ios_base::binary);
-  kanjidatSz = fsize(ifs);
-  char* kanjibuf = new char[kanjidatSz];
-  ifs.read(kanjibuf, kanjidatSz);
-  ifs.close(); */
+  FldFile fld;
+  {
+    TIfstream ifs(infile, ios_base::binary);
+    fld.read(ifs);
+  }
   
   // Get the kanjidat write address from the kanjitxt
   ifs.open(kanjitxt);
@@ -336,26 +409,27 @@ int main(int argc, char* argv[]) {
   int endIndex = 0;
   while (startIndex < transEntries.size()) {
     // Find the indices of the start and end of the dialogue for each chunk
-    while (transEntries[endIndex++].chunk == transEntries[startIndex].chunk);
-    --endIndex;
+    while (transEntries[endIndex].chunk == transEntries[startIndex].chunk)
+      ++endIndex;
     
     // Get chunk number
     int chunknum = transEntries[startIndex].chunk;
     
-    // Look up chunk address from index
-    int indexAddr = chunknum * chunkIndexEntrySize;
-    int chunkAddr = ByteConversion::fromBytes(buffer + indexAddr + 0, 4,
-      EndiannessTypes::big, SignednessTypes::nosign);
-    int chunkSize = ByteConversion::fromBytes(buffer + indexAddr + 4, 4,
-      EndiannessTypes::big, SignednessTypes::nosign);
+    if (chunknum >= fld.numChunks()) {
+      throw TGenericException(T_SRCANDLINE,
+                              "main()",
+                              std::string("Chunknum exceeds chunks in file: ")
+                                + " file = "
+                                + infile
+                                + ", chunks = "
+                                + TStringConversion::intToString(fld.numChunks())
+                                + ", chunknum = "
+                                + TStringConversion::intToString(chunknum));
+    }
     
-    // Compute actual size of chunk (accounting for sector-boundary padding)
-    int realChunkSize = ((chunkSize / sectorSize) * sectorSize);
-    if (chunkSize % sectorSize != 0) realChunkSize += sectorSize;
+    std::cout << "  Adding strings from chunk " << chunknum << std::endl;
     
-    std::cout << "Adding strings from chunk " << chunknum << std::endl;
-    
-    updateChunk(buffer + chunkAddr, realChunkSize,
+    updateChunk(fld.chunk(chunknum),
                 transEntries, startIndex, endIndex,
                 kanjiBuf);
     
@@ -364,22 +438,21 @@ int main(int argc, char* argv[]) {
   }
   
   // Write the modified FLD
-  ofstream ofs(outfile, ios_base::binary);
-  ofs.write(buffer, infileSz);
-  ofs.close();
-  delete buffer;
+  {
+    TBufStream ofs;
+    fld.write(ofs);
+    ofs.save(outfile);
+  }
   
   // Write the modified kanjidat
-/*  ofs.open(kanjidat, ios_base::binary);
-  ofs.write(kanjibuf, kanjidatSz);
-  ofs.close();
-  delete kanjibuf; */
   kanjiBuf.save(kanjidat);
   
   // Update kanjitxt
-  ofs.open(kanjitxt);
-  ofs << kanjiPutPos;
-  ofs.close();
+  {
+    std::ofstream ofs(kanjitxt);
+    ofs << kanjiPutPos;
+    ofs.close();
+  }
   
   return 0;
 }
