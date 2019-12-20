@@ -82,9 +82,19 @@ struct TransFileEntry {
 };
 
 int countConsecutiveNewlines(string& chars, int pos) {
-  int endpos = pos;
-  while ((endpos < chars.size()) && (chars[endpos++] == '\n'));
-  return (endpos - pos) - 1;
+  int count = 0;
+  
+  while (pos < chars.size()) {
+    // screen for windows-style line \r\n breaks
+    if ((pos <= (chars.size() - 2))
+        && (chars[pos] == '\r')) ++pos;
+    
+    if (chars[pos++] != '\n') break;
+    
+    ++count;
+  }
+  
+  return count;
 }
 
 char readNextChar(string& chars, int& pos) {
@@ -535,5 +545,5 @@ int main(int argc, char* argv[]) {
     ofs.close();
   }
   
-  return 1;
+  return 0;
 }
