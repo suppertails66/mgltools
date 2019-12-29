@@ -100,6 +100,52 @@ namespace Sat {
         dst.push_back('.');
         dst.push_back('.');
       }
+      // UTF-8 reference mark
+      // This is roughly equivalent to an asterisk, so just use that.
+      else if (chars[i] == 0x203B) {
+        dst.push_back('*');
+      }
+      // UTF-8 circle
+      else if (chars[i] == 0x25CF) {
+        dst.push_back(0x84);
+      }
+      // UTF-8 star
+      else if (chars[i] == 0x2606) {
+        // TODO: we're missing a font character for this! oops!
+        dst.push_back('?');
+      }
+      // UTF-8 music note
+      else if (chars[i] == 0x266A) {
+        dst.push_back(0x81);
+      }
+      // UTF-8 heart
+      else if (chars[i] == 0x2764) {
+        dst.push_back(0x80);
+      }
+      // UTF-8 wide space (ugh, yeah, thanks unicode)
+      else if (chars[i] == 0x3000) {
+        dst.push_back(' ');
+      }
+      // UTF-8 smart single quote
+      else if (chars[i] == 0x8217) {
+        dst.push_back('\'');
+      }
+      // UTF-8 wide exclamation mark
+      else if (chars[i] == 0xFF01) {
+        dst.push_back('!');
+      }
+      // UTF-8 wide forward slash
+      else if (chars[i] == 0xFF0F) {
+        dst.push_back('/');
+      }
+      // UTF-8 wide question mark
+      else if (chars[i] == 0xFF1F) {
+        dst.push_back('?');
+      }
+      // UTF-8 wide tilde
+      else if (chars[i] == 0xFF5E) {
+        dst.push_back('~');
+      }
       // \xFF format
       else if ((i <= endpos - 4)
                && (chars[i] == '\\')
